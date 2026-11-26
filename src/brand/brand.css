@@ -17,7 +17,7 @@
 }
 
 /* Hidromek görseli: giriş ekranı ve uygulama arka planı */
-app-sign-in-page .hx-welcome{font-size:15px;color:var(--light-brand,#d0021b);font-weight:700;margin:0 0 6px}
+app-sign-in-page .hx-welcome{font-size:15px;color:var(--brand,#d0021b);font-weight:700;margin:0 0 6px}
 .hx-hero{position:relative;height:200px;border-radius:16px;overflow:hidden;margin:0 0 16px;background:#e9ecee url(banner-temiz.jpg?v=1) right top/cover no-repeat;box-shadow:0 1px 3px rgba(0,0,0,.08)}
 .hx-hero:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,255,255,.92) 0,rgba(255,255,255,.75) 30%,rgba(255,255,255,0) 55%)}
 .hx-hero .t{position:absolute;left:24px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:4px;color:#141414}
@@ -63,3 +63,37 @@ app-sign-in-page .art .intro{align-self:center}
 .hx-root .hx-hero{margin:0 0 16px!important}
 .hx-hero{background-color:#f2f2f2!important}
 .hx-hero:before{background:linear-gradient(90deg,#f2f2f2 0,#f2f2f2 52%,rgba(242,242,242,0) 72%)!important}
+.hx-src{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:50%;vertical-align:-5px;margin-right:8px;flex:none}
+.hx-src.iot{background:#e3f4ef;color:#13795b;box-shadow:0 0 0 1px #bfe6d8 inset}
+.hx-src.bey{background:#eef0f3;color:#5b6773;box-shadow:0 0 0 1px #d9dde2 inset}
+article.line-card h2{display:flex;align-items:center;min-width:0}
+article.line-card h2 a{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.hx-leg{display:inline-flex;align-items:center;gap:4px;margin-left:14px}.hx-leg .hx-src{width:18px;height:18px;margin:0 2px 0 8px}.hx-leg .hx-src svg{width:11px;height:11px}
+
+/* Bekleyen İşlerim: sade sayı kutuları */
+app-tasks-page .stats{gap:10px!important}
+app-tasks-page .stats .stat{display:flex!important;align-items:center;justify-content:space-between;padding:10px 16px!important;min-height:0!important;box-shadow:none!important}
+app-tasks-page .stats .stat .label{margin:0!important;font-size:11px!important}
+app-tasks-page .stats .stat b{font-size:20px!important;line-height:1.1!important;margin:0!important}
+
+/* Yumuşak koyu tema (grafit + Hidromek kırmızısı) */
+:root:root{
+  --dark-bg:#1d2024;--dark-surface:#25292e;--dark-surface-2:#2e3338;--dark-line:#363c42;--dark-line-2:#434a51;
+  --dark-fg:#ebe8e4;--dark-muted:#a8adb3;--dark-faint:#868c93;
+  --dark-ok:#5cc98f;--dark-ok-bg:#1f3329;--dark-bad:#f07a7a;--dark-bad-bg:#3b2426;--dark-warn:#e9c068;--dark-warn-bg:#3a3220;
+  --dark-idle:#a8b0b6;--dark-idle-bg:#2c3237;--dark-info:#8fbfe0;--dark-info-bg:#1f2c37;--dark-row-err:#33262a;
+  --dark-brand:#e5525f;--dark-brand-deep:#f2808a;--dark-brand-soft:#3a2427;--dark-brand-ink:#ffffff;
+  --dark-stripe-1:#e5525f;--dark-stripe-2:#ebe8e4;--dark-stripe-3:#5d646c;--dark-logo-plate:transparent;--dark-shadow:0 1px 2px rgba(0,0,0,.25)
+}
+:root[data-theme="dark"] .hx-hero{background-color:#2a2e33!important;background-blend-mode:multiply}
+:root[data-theme="dark"] .hx-hero:before{background:linear-gradient(90deg,var(--surface) 0,var(--surface) 52%,rgba(37,41,46,0) 72%)!important}
+:root[data-theme="dark"] .hx-hero .t{color:var(--fg)!important}
+:root[data-theme="dark"] .hx-hero span{color:var(--muted)!important}
+:root[data-theme="dark"] app-sign-in-page .art{background:var(--surface)!important;color:var(--fg)!important}
+:root[data-theme="dark"] app-sign-in-page .art .blocks{filter:brightness(.45) saturate(.6);opacity:.7!important}
+:root[data-theme="dark"] .hx-src.iot{background:#1f3329;color:#5cc98f;box-shadow:0 0 0 1px #2d4a3b inset}
+:root[data-theme="dark"] .hx-src.bey{background:#2e3338;color:#a8adb3;box-shadow:0 0 0 1px #434a51 inset}
+:root[data-theme="dark"] .hx-chip{background:#2d2840;border-color:#463d6b;color:#c9bdff}
+.hx-hero .t{color:var(--fg)}
+.hx-theme{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--fg);cursor:pointer;flex:none}
+.hx-theme:hover{border-color:var(--line-2)}

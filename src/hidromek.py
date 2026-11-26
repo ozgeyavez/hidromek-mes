@@ -32,7 +32,7 @@ for fc, fname, xname in FACT:
         if isinstance(v, (int, float)) and v > 0:
             tc, tn, iot = TYPES[hdr[i]]
             GROUPS.append((fc, f'{fc}-{tc}', tn, int(v), iot))
-gname = lambda g: f'{g[2]} · {g[3]} tezgâh · {"IoT" if g[4] else "beyan"}'
+gname = lambda g: f'{g[2]} · {g[3]} tezgâh'
 
 # ---- 2. MCC hatlarının Fabrika 6 gruplarına eşlenmesi (çalışan işler bu gruplarda görünür) ----
 MAP = {'B1': 'F6-CNC', 'B2': 'F6-ROB', 'B3': 'F6-MKY', 'B4': 'F6-MON', 'B5': 'F6-ABK'}

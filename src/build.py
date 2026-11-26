@@ -38,7 +38,8 @@ for k, v in data.items():
         b = json.loads(v['r']); b['logo'] = 'brand/logo.svg'; b['site'] = 'Birlikte Daha Güçlüyüz'; b['logoDark'] = 'brand/logo-dark.svg'; v['r'] = json.dumps(b, ensure_ascii=False)
 lines = json.loads(data['GET /api/lines']['r'])['lines']
 known = sorted({c for k in data for c in re.findall(r'(?:F6|KMP|F2|ESB|F1|SLN)-[A-Z]{3}', k)})
-extra_js = 'window.__TEMPLATE_LINE="F6-ROB";window.__KNOWN_LINES=' + json.dumps(known) + ';window.__LINE_NAMES=' + json.dumps({l['code']: l['name'] for l in lines}, ensure_ascii=False) + ';'
+IOT = {g[1]: bool(g[4]) for g in json.load(open(os.path.join(S, 'data', 'yapi.json')))['groups']}
+extra_js = 'window.__IOT=' + json.dumps(IOT) + ';window.__TEMPLATE_LINE="F6-ROB";window.__KNOWN_LINES=' + json.dumps(known) + ';window.__LINE_NAMES=' + json.dumps({l['code']: l['name'] for l in lines}, ensure_ascii=False) + ';'
 open(os.path.join(OUT, 'data.js'), 'w').write('window.__MOCK=' + json.dumps(data, ensure_ascii=False) + ';' + extra_js)
 extra = os.path.join(S, 'handlers.js')
 if os.path.exists(extra): shutil.copy(extra, os.path.join(OUT, 'handlers.js'))
@@ -47,7 +48,7 @@ h = h.replace('<base href="/">', '<script>document.write(\'<base href="\'+locati
 h = re.sub(r'<link rel="preload"[^>]*>', '', h).replace('<title>Kuika - Intelligent Systems</title>', '<title>Hidromek MES</title>')
 import time as _t; VER = str(int(_t.time()))
 h = h.replace('href="/brand/brand.css"', 'href="brand/brand.css?v=' + VER + '"').replace('styles-RCQEQ2P5.css', 'styles.css')
-shim = '<style>[data-tab="camera"],[data-tab-panel="camera"],a[href*="tab=camera"],a[href*="camera-codes"]{display:none!important}</style><script src="data.js?v=' + VER + '"></script>' + ('<script src="handlers.js"></script>' if os.path.exists(extra) else '') + '<script src="mock.js?v=' + VER + '"></script>'
+shim = '<script>try{document.documentElement.setAttribute("data-theme",localStorage.getItem("hx-theme")||"light")}catch(e){document.documentElement.setAttribute("data-theme","light")}</script><style>[data-tab="camera"],[data-tab-panel="camera"],a[href*="tab=camera"],a[href*="camera-codes"]{display:none!important}</style><script src="data.js?v=' + VER + '"></script>' + ('<script src="handlers.js"></script>' if os.path.exists(extra) else '') + '<script src="mock.js?v=' + VER + '"></script>'
 h = h.replace('<script src="main-CMN2A4ZL.js" type="module">', shim + '<script src="ext.js?v=' + VER + '" defer></script><script src="main-CMN2A4ZL.js" type="module">')
 h = h.replace('url(/fonts/', 'url(fonts/')
 # Önbellek: JS dosya adlarına içerik özeti eklenir (tarayıcı eski sürümü tutamaz)

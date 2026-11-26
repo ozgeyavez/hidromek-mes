@@ -19,7 +19,10 @@
   var procs = []; try { procs = JSON.parse(M['GET /api/processes'].r); } catch (e) {}
   var lines = []; try { lines = JSON.parse(M['GET /api/lines'].r).lines; } catch (e) {}
   var LN = {}; lines.forEach(function (l) { LN[l.code] = l.name; });
-  var groupsOf = function (fc) { var p = procs.find(function (x) { return x.code === fc; }); return p ? p.lines.map(function (c) { var n = LN[c] || c; var m = n.match(/· (\d+) tezgâh · (IoT|beyan)/); return { code: c, name: n.split(' · ')[0], count: m ? +m[1] : 1, iot: m ? m[2] === 'IoT' : false }; }) : []; };
+  var SIG = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M4.5 10.5a11 11 0 0 1 15 0"/><path d="M8 14a6 6 0 0 1 8 0"/><circle cx="12" cy="18" r="1.4" fill="currentColor" stroke="none"/></svg>';
+  var TAB = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2.5"/><path d="M9 8h6M9 12h6M9 16h3"/></svg>';
+  var srcBadge = function (iot) { return iot ? '<span class="hx-src iot" title="IoT bağlı: veri makineden otomatik gelir">' + SIG + '</span>' : '<span class="hx-src bey" title="Beyan: veriyi operatör tabletten girer">' + TAB + '</span>'; };
+  var groupsOf = function (fc) { var p = procs.find(function (x) { return x.code === fc; }); return p ? p.lines.map(function (c) { var n = LN[c] || c; var m = n.match(/· (\d+) tezgâh/); return { code: c, name: n.split(' · ')[0], count: m ? +m[1] : 1, iot: !!(window.__IOT || {})[c] }; }) : []; };
   var FACTS = procs.map(function (p) { return { code: p.code, name: p.name }; });
 
   var FAM = [
@@ -284,7 +287,7 @@
   var st2 = document.createElement('style'); st2.textContent = css2; document.head.appendChild(st2);
   function hsh(s) { var h = 0; for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 100000; return h; }
   function oeeFor(code, status) {
-    var h = hsh(code), iot = /· IoT/.test(LN[code] || '');
+    var h = hsh(code), iot = !!(window.__IOT || {})[code];
     var A = status === 'stopped' ? 52 + h % 18 : status === 'idle' ? 61 + h % 14 : 82 + h % 15;
     var P = 74 + (h >> 3) % 22, Q = 95 + (h >> 5) % 5; var O = Math.round(A * P * Q / 1e4);
     var g = groupsOf((procs.find(function (p) { return p.lines.indexOf(code) >= 0; }) || {}).code || '').find(function (x) { return x.code === code; });
@@ -301,7 +304,8 @@
       var el = document.createElement('div'); el.className = 'hx-oee';
       el.innerHTML = cell('OEE', o.O, tone(o.O, 75, 60)) + cell('Kullanılabilirlik', o.A, tone(o.A, 85, 70)) + cell('Performans', o.P, tone(o.P, 85, 70)) + cell('Kalite', o.Q, tone(o.Q, 98, 95)) +
         '<em>Hız ' + o.rate + ' adet/sa · hedef ' + o.target + ' adet/sa · vardiya başından · ' + (o.iot ? 'makineden (IoT)' : 'operatör beyanından') + '</em>';
-      var re = card.querySelector('.row-end'); if (re && !re.querySelector('.hx-code')) { var cc = document.createElement('span'); cc.className = 'hx-code'; cc.title = 'Makine grubu kodu'; cc.textContent = code; re.insertBefore(cc, re.firstChild); }
+      var re = card.querySelector('.row-end'); var h2 = card.querySelector('h2'); if (h2 && !h2.querySelector('.hx-src')) { var sb = document.createElement('span'); sb.innerHTML = srcBadge(!!(window.__IOT || {})[code]); h2.insertBefore(sb.firstChild, h2.firstChild); }
+      if (re && !re.querySelector('.hx-code')) { var cc = document.createElement('span'); cc.className = 'hx-code'; cc.title = 'Makine grubu kodu'; cc.textContent = code; re.insertBefore(cc, re.firstChild); }
       el.classList.add('slot'); var ref = card.querySelector('.stopband') || card.querySelector('.crew'); if (ref) card.insertBefore(el, ref); else card.appendChild(el); card.classList.add('hx-has-oee');
     });
   }
@@ -327,7 +331,7 @@
     box.setAttribute('data-k', key);
     var t = function (lab, v, a, b, sub) { var tn = v >= a ? 'ok' : v >= b ? 'warn' : 'bad'; return '<div class="c"><small>' + lab + '</small><b class="' + tn + '">%' + v + '</b><i class="' + tn + '"><span style="width:' + v + '%"></span></i><em>' + sub + '</em></div>'; };
     box.innerHTML = t('OEE', s.O, 75, 60, 'Hedef %75') + t('Kullanılabilirlik', s.A, 85, 70, 'Planlı süreye göre çalışma') + t('Performans', s.P, 85, 70, 'Hız / hedef hız') + t('Kalite', s.Q, 98, 95, 'Sağlam / toplam') +
-      '<div class="note">Seçili fabrikanın ' + cards.length + ' makine grubu, ' + tw + ' tezgâh · gündüz vardiyası başından · tezgâh sayısıyla ağırlıklı</div>';
+      '<div class="note">Seçili fabrikanın ' + cards.length + ' makine grubu, ' + tw + ' tezgâh · gündüz vardiyası başından · tezgâh sayısıyla ağırlıklı<span class="hx-leg">' + srcBadge(true) + ' makineden otomatik ' + srcBadge(false) + ' operatör beyanı</span></div>';
   }
   function demoLogin() {
     var f = document.querySelector('app-sign-in-page form.card'); if (!f || document.querySelector('.hx-demo')) return;
@@ -357,7 +361,16 @@
     [].forEach.call(hs, function (b) { var t = b.textContent.replace(/·\s*[^·]+$/, '· ' + fab); if (t !== b.textContent) b.textContent = t; });
   }
   document.addEventListener('change', function (e) { if (e.target.closest && e.target.closest('app-process-picker')) setTimeout(heroSync, 50); }, true);
-  new MutationObserver(function () { inject(); oeeCards(); oeeSummary(); demoLogin(); heroAll(); heroSync(); }).observe(document.documentElement, { childList: true, subtree: true });
+  var MOON = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/></svg>';
+  var SUN = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></svg>';
+  function themeBtn() {
+    var lp = document.querySelector('app-language-picker'); if (!lp || (lp.previousElementSibling && lp.previousElementSibling.classList.contains('hx-theme'))) return;
+    var b = document.createElement('button'); b.type = 'button'; b.className = 'hx-theme';
+    var paint = function () { var d = document.documentElement.getAttribute('data-theme') === 'dark'; b.innerHTML = d ? SUN : MOON; b.title = d ? 'Açık tema' : 'Koyu tema'; b.setAttribute('aria-label', b.title); };
+    b.onclick = function () { var d = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', d); try { localStorage.setItem('hx-theme', d); } catch (e) { } paint(); };
+    paint(); lp.parentNode.insertBefore(b, lp);
+  }
+  new MutationObserver(function () { themeBtn(); inject(); oeeCards(); oeeSummary(); demoLogin(); heroAll(); heroSync(); }).observe(document.documentElement, { childList: true, subtree: true });
 
   document.addEventListener('click', function (ev) {
     var nav = ev.target.closest && ev.target.closest('a[data-hx-nav]');
