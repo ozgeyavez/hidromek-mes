@@ -103,7 +103,7 @@
   var tabs = function (key, list, def) { var cur = S.tab[key] || def; return '<div class="hx-tabs">' + list.map(function (t) { return '<button data-hx="tab" data-k="' + key + '" data-x="' + t[0] + '" class="' + (cur === t[0] ? 'on' : '') + '">' + t[1] + '</button>'; }).join('') + '</div>'; };
   var cur = function (k, d) { return S.tab[k] || d; };
   var facSel = function () { return '<label class="hx-fld">Fabrika<select class="hx-sel" data-hx-f="fac">' + FACTS.map(function (f) { return '<option value="' + f.code + '"' + (S.fac === f.code ? ' selected' : '') + '>' + esc(f.name) + '</option>'; }).join('') + '</select></label>'; };
-  var head = function (crumb, title, sub, right) { return '<div class="hx-crumb">' + crumb + '</div><div class="hx-bar"><div><div class="hx-h1">' + title + '</div><p class="hx-sub">' + sub + '</p></div><span class="hx-sp"></span>' + (right || '') + '</div>' + heroHtml(); };
+  var head = function (crumb, title, sub, right) { return '<div class="hx-bar hx-head"><div><div class="hx-h1">' + title + '</div></div><span class="hx-sp"></span>' + (right || '') + '</div>' + heroHtml(); };
   function heroHtml() {
     var fsel = document.querySelector('app-process-picker select'); var fab = fsel && fsel.selectedIndex >= 0 ? fsel.options[fsel.selectedIndex].text : 'Fabrika 6';
     var hr = new Date().getHours(), hi = hr < 12 ? 'Günaydın' : hr < 18 ? 'İyi çalışmalar' : 'İyi akşamlar';
