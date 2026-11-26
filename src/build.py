@@ -35,9 +35,10 @@ if os.path.exists(extra): shutil.copy(extra, os.path.join(OUT, 'handlers.js'))
 h = open(os.path.join(V, 'index.orig.html')).read()
 h = h.replace('<base href="/">', '<script>document.write(\'<base href="\'+location.pathname.replace(/[^/]*$/,\'\')+\'">\')</script>')
 h = re.sub(r'<link rel="preload"[^>]*>', '', h).replace('<title>Kuika - Intelligent Systems</title>', '<title>Hidromek MES</title>')
-h = h.replace('href="/brand/brand.css"', 'href="brand/brand.css"').replace('styles-RCQEQ2P5.css', 'styles.css')
-shim = '<style>[data-tab="camera"],[data-tab-panel="camera"],a[href*="tab=camera"],a[href*="camera-codes"]{display:none!important}</style><script src="data.js"></script>' + ('<script src="handlers.js"></script>' if os.path.exists(extra) else '') + '<script src="mock.js"></script>'
-h = h.replace('<script src="main-CMN2A4ZL.js" type="module">', shim + '<script src="ext.js" defer></script><script src="main-CMN2A4ZL.js" type="module">')
+import time as _t; VER = str(int(_t.time()))
+h = h.replace('href="/brand/brand.css"', 'href="brand/brand.css?v=' + VER + '"').replace('styles-RCQEQ2P5.css', 'styles.css')
+shim = '<style>[data-tab="camera"],[data-tab-panel="camera"],a[href*="tab=camera"],a[href*="camera-codes"]{display:none!important}</style><script src="data.js?v=' + VER + '"></script>' + ('<script src="handlers.js"></script>' if os.path.exists(extra) else '') + '<script src="mock.js?v=' + VER + '"></script>'
+h = h.replace('<script src="main-CMN2A4ZL.js" type="module">', shim + '<script src="ext.js?v=' + VER + '" defer></script><script src="main-CMN2A4ZL.js" type="module">')
 h = h.replace('url(/fonts/', 'url(fonts/')
 open(os.path.join(OUT, 'index.html'), 'w').write(h)
 open(os.path.join(OUT, 'app.html'), 'w').write(h)

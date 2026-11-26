@@ -301,8 +301,17 @@
     });
   }
 
+  function heroBand(stats) {
+    var fsel = document.querySelector('app-process-picker select'); var fab = fsel ? fsel.options[fsel.selectedIndex].text : 'Fabrika 6';
+    var hr = new Date().getHours(), hi = hr < 12 ? 'Günaydın' : hr < 18 ? 'İyi çalışmalar' : 'İyi akşamlar';
+    var txt = hi + ', Özge · ' + fab;
+    var hb = document.querySelector('.hx-hero');
+    if (!hb) { hb = document.createElement('div'); hb.className = 'hx-hero'; hb.innerHTML = '<div class="t"><small>Birlikte Daha Güçlüyüz</small><b></b><span>Gündüz vardiyası 08:00–18:00 · ' + new Date().toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', weekday: 'long' }) + '</span></div>'; stats.parentNode.insertBefore(hb, stats); }
+    var b = hb.querySelector('b'); if (b.textContent !== txt) b.textContent = txt;
+  }
   function oeeSummary() {
     var stats = document.querySelector('app-lines-page .stats'); if (!stats) return;
+    heroBand(stats);
     var cards = [].slice.call(document.querySelectorAll('article.line-card')); if (!cards.length) return;
     var key = cards.map(function (c) { return c.id + c.getAttribute('data-status'); }).join('|');
     var box = document.querySelector('.hx-oee-sum');
