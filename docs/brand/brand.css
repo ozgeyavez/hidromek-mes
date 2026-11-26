@@ -49,3 +49,5 @@ app-sign-in-page .art .intro{align-self:center}
 .hx-head .hx-h1{margin:0!important;line-height:1.2}
 .hx-root{padding-top:20px!important}
 .hx-root .hx-hero{margin-bottom:10px!important}
+.prod:has(.logo)>div,.prod:has(.logo) .sep{display:none!important}
+.hx-hero{height:66px!important}
