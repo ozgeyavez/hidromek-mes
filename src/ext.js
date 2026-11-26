@@ -2,6 +2,7 @@
    Ürünün yan menüsüne bağlantı ekler; ekranlar ürünün içerik alanında açılır. Veriler örnektir. */
 (function () {
   'use strict';
+  var css2;
   var NOW = new Date(); NOW.setMinutes(0, 0, 0);
   var DAY = 864e5;
   var esc = function (s) { return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
@@ -112,7 +113,7 @@
       seed = S.fac.length * 13 + 5;
       var days = []; for (var d = 0; d < 6; d++) { var dt = new Date(NOW.getTime() + d * DAY); days.push(dt); }
       body = '<div class="hx-bar"><div class="hx-legend"><span><i style="background:var(--ok-bg)"></i>%80 altı</span><span><i style="background:var(--warn-bg)"></i>%80–100</span><span><i style="background:var(--bad-bg)"></i>Kapasite aşımı</span></div></div><div class="hx-tw"><table class="hx-t"><tr><th>Makine grubu</th><th class="r">Tezgâh</th><th class="r">Günlük kapasite</th>' + days.map(function (x) { return '<th>' + DAYS[x.getDay()] + ' ' + d2(x.getDate()) + '.' + d2(x.getMonth() + 1) + '</th>'; }).join('') + '</tr>' +
-        gs.map(function (g) { var cap = g.count * 2 * 7.5; return '<tr><td><b>' + esc(g.name) + '</b> <span class="hx-pill ' + (g.iot ? 'info' : 'idle') + '">' + (g.iot ? 'IoT' : 'beyan') + '</span></td><td class="r">' + g.count + '</td><td class="r">' + nf(cap) + ' sa</td>' + days.map(function (x) { var w = x.getDay() === 0; var p = w ? 0 : Math.round(45 + rnd() * 70); return '<td><div class="hx-load ' + (w ? 'l-none' : p > 100 ? 'l-bad' : p >= 80 ? 'l-warn' : 'l-ok') + '">' + (w ? 'Tatil' : '%' + p) + '</div></td>'; }).join('') + '</tr>'; }).join('') + '</table></div><div class="hx-note">Kapasite = tezgâh × 2 vardiya × 7,5 saat. Yük, IFS iş emirlerinin rota sürelerinden hesaplanır.</div>';
+        gs.map(function (g) { var cap = g.count * 9; return '<tr><td><b>' + esc(g.name) + '</b> <span class="hx-pill ' + (g.iot ? 'info' : 'idle') + '">' + (g.iot ? 'IoT' : 'beyan') + '</span></td><td class="r">' + g.count + '</td><td class="r">' + nf(cap) + ' sa</td>' + days.map(function (x) { var w = x.getDay() === 0; var p = w ? 0 : Math.round(45 + rnd() * 70); return '<td><div class="hx-load ' + (w ? 'l-none' : p > 100 ? 'l-bad' : p >= 80 ? 'l-warn' : 'l-ok') + '">' + (w ? 'Tatil' : '%' + p) + '</div></td>'; }).join('') + '</tr>'; }).join('') + '</table></div><div class="hx-note">Kapasite = tezgâh × tek vardiya × 9 saat (08:00–18:00, 1 saat mola). Yük, IFS iş emirlerinin rota sürelerinden hesaplanır.</div>';
     } else if (t === 'sap') {
       var L = IFS.filter(function (o) { return o.fac === S.fac || S.fac === 'ALL'; }); if (!L.length) L = IFS.slice(0, 8);
       body = '<div class="hx-kpis"><div class="hx-kpi"><small>IFS’te serbest</small><b>' + L.filter(function (o) { return o.st === 'IFS’te serbest'; }).length + '</b></div><div class="hx-kpi"><small>MES’e aktarıldı</small><b>' + L.filter(function (o) { return o.st === 'MES’e aktarıldı'; }).length + '</b></div><div class="hx-kpi"><small>Üretimde</small><b>' + L.filter(function (o) { return o.st === 'Üretimde'; }).length + '</b></div><div class="hx-kpi"><small>Teyit edildi</small><b>' + L.filter(function (o) { return o.st === 'Teyit edildi'; }).length + '</b></div></div>' +
@@ -260,7 +261,33 @@
       if (active === key) a.classList.add('on');
     });
   }
-  new MutationObserver(function () { inject(); }).observe(document.documentElement, { childList: true, subtree: true });
+
+  /* ---------- makine kartlarında OEE göstergeleri ---------- */
+  css2 = 'article.line-card.hx-has-oee{grid-template-rows:28px 82px 24px 76px 44px 66px 30px!important}@media (max-width:900px){article.line-card.hx-has-oee{grid-template-rows:none!important}}.hx-oee{display:grid;grid-template-columns:repeat(4,1fr);gap:4px 10px;margin:0;padding:6px 0 0;border-top:1px solid var(--line)}.hx-oee div{min-width:0}.hx-oee small{display:block;font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:700;white-space:nowrap}.hx-oee b{font-size:16px;display:block;line-height:1.25}.hx-oee .ok{color:var(--ok)}.hx-oee .warn{color:var(--warn)}.hx-oee .bad{color:var(--bad)}.hx-oee i{display:block;height:4px;border-radius:2px;background:var(--surface-2);overflow:hidden;margin-top:3px}.hx-oee i span{display:block;height:100%;background:currentColor}.hx-oee em{grid-column:1/-1;font-style:normal;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}';
+  var st2 = document.createElement('style'); st2.textContent = css2; document.head.appendChild(st2);
+  function hsh(s) { var h = 0; for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 100000; return h; }
+  function oeeFor(code, status) {
+    var h = hsh(code), iot = /· IoT/.test(LN[code] || '');
+    var A = status === 'stopped' ? 52 + h % 18 : status === 'idle' ? 61 + h % 14 : 82 + h % 15;
+    var P = 74 + (h >> 3) % 22, Q = 95 + (h >> 5) % 5; var O = Math.round(A * P * Q / 1e4);
+    var g = groupsOf((procs.find(function (p) { return p.lines.indexOf(code) >= 0; }) || {}).code || '').find(function (x) { return x.code === code; });
+    var rate = Math.max(1, Math.round((g ? g.count : 1) * (iot ? 1.6 : 0.9) * P / 100)), target = Math.max(1, Math.round((g ? g.count : 1) * (iot ? 1.6 : 0.9)));
+    return { A: A, P: P, Q: Q, O: O, rate: rate, target: target, iot: iot };
+  }
+  var tone = function (v, a, b) { return v >= a ? 'ok' : v >= b ? 'warn' : 'bad'; };
+  function oeeCards() {
+    document.querySelectorAll('article.line-card').forEach(function (card) {
+      if (card.querySelector('.hx-oee')) return;
+      var code = (card.id || '').replace(/^line-/, ''); if (!code) return;
+      var o = oeeFor(code, card.getAttribute('data-status'));
+      var cell = function (lab, v, tn) { return '<div><small>' + lab + '</small><b class="' + tn + '">%' + v + '</b><i class="' + tn + '"><span style="width:' + v + '%"></span></i></div>'; };
+      var el = document.createElement('div'); el.className = 'hx-oee';
+      el.innerHTML = cell('OEE', o.O, tone(o.O, 75, 60)) + cell('Kullanılabilirlik', o.A, tone(o.A, 85, 70)) + cell('Performans', o.P, tone(o.P, 85, 70)) + cell('Kalite', o.Q, tone(o.Q, 98, 95)) +
+        '<em>Hız ' + o.rate + ' adet/sa · hedef ' + o.target + ' adet/sa · vardiya başından · ' + (o.iot ? 'makineden (IoT)' : 'operatör beyanından') + '</em>';
+      el.classList.add('slot'); var ref = card.querySelector('.stopband') || card.querySelector('.crew'); if (ref) card.insertBefore(el, ref); else card.appendChild(el); card.classList.add('hx-has-oee');
+    });
+  }
+  new MutationObserver(function () { inject(); oeeCards(); }).observe(document.documentElement, { childList: true, subtree: true });
 
   document.addEventListener('click', function (ev) {
     var nav = ev.target.closest && ev.target.closest('a[data-hx-nav]');

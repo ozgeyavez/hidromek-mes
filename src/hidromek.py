@@ -289,6 +289,67 @@ for ln in lj['lines']:
     if k not in OUT or ln['code'] in down:
         OUT[k] = {'s': 200, 'ct': 'application/json', 'r': json.dumps({'position': lj.get('position'), 'line': ln, 'workCells': [c for c in lj['workCells'] if c['lineCode'] == ln['code']], 'reasons': REASONS, 'today': []}, ensure_ascii=False)}
 print('doldurma:', len(NEW), 'yeni iş emri ·', len(down), 'duruşta grup')
+
+# ---- 8. Vardiya ekipleri (operatörler) ----
+random.seed(41)
+NAMES = ['Hasan Tekin', 'Mehmet Yılmaz', 'Ali Kaya', 'Can Toprak', 'Zeynep Arslan', 'Ayşe Koç', 'Fatma Demir', 'Elif Şahin', 'Murat Çelik', 'Emre Aydın', 'Burak Öztürk', 'Serkan Polat',
+         'Hakan Yıldız', 'Gökhan Kılıç', 'Onur Aksoy', 'Volkan Erdem', 'Cem Kurt', 'Okan Bulut', 'Tolga Aslan', 'Selin Uçar', 'Deniz Kaplan', 'Kemal Tunç', 'Yusuf Doğan', 'Ramazan Er',
+         'İbrahim Güneş', 'Mustafa Ateş', 'Sinan Bozkurt', 'Erkan Sarı', 'Barış Yalçın', 'Umut Karaca', 'Levent Çakır', 'Taner Özkan', 'Fikret Acar', 'Orhan Uslu', 'Sedat Ekinci', 'Veli Turan']
+ROLE = {'ROB': 'Robot kaynak operatörü', 'MKY': 'Kaynakçı', 'CNC': 'CNC operatörü', 'UNV': 'Tezgâh operatörü', 'MON': 'Montaj operatörü', 'BOY': 'Boyacı', 'BRB': 'Boya robot operatörü', 'PLZ': 'Kesim operatörü', 'ABK': 'Büküm operatörü', 'PRS': 'Pres operatörü'}
+lj = json.loads(OUT['GET /api/lines']['r'])
+cells_by = {}
+for c in lj['workCells']: cells_by.setdefault(c['lineCode'], []).append(c)
+shift = json.loads(OUT['GET /api/crew']['r'])['shift']
+present_all, inshift_all, stations_all, people = [], [], [], {}
+pid = 100
+for g in GROUPS:
+    code = g[1]; t = code.split('-')[1]
+    n = 0 if code in down else min(g[3], random.choice([1, 2, 2, 3, 3, 4]))
+    st = [{'code': c['code'] + '-T', 'name': f"{g[2]} · {c['name']} tableti", 'workCellName': c['name'], 'lineCode': code} for c in cells_by.get(code, [])[:max(n, 2)]]
+    stations_all += st
+    for i in range(n):
+        pid += 1; nm = NAMES[(pid * 7) % len(NAMES)]; pidc = 'op-%d' % pid
+        people[pidc] = {'id': pidc, 'name': nm, 'roleName': ROLE.get(t, 'Operatör')}
+        since = '2026-11-26T08:%02d:00+00:00' % random.randint(0, 25)
+        present_all.append({'personId': pidc, 'name': nm, 'station': st[i], 'since': since})
+        inshift_all.append({'personId': pidc, 'name': nm, 'station': st[i], 'seconds': random.randint(5400, 9000), 'present': True})
+for k in [k for k in OUT if k.startswith('GET /api/crew') and not k.startswith('GET /api/crew/')]:
+    o = json.loads(OUT[k]['r']); m = re.search(r'line=([A-Z0-9]+-[A-Z]{3})', k)
+    keep = (lambda x: x['station']['lineCode'] == m.group(1)) if m else (lambda x: True)
+    o['stations'] = [x for x in stations_all if (not m or x['lineCode'] == m.group(1))]
+    o['present'] = [x for x in present_all if keep(x)]; o['inShift'] = [x for x in inshift_all if keep(x)]
+    OUT[k]['r'] = json.dumps(o, ensure_ascii=False)
+for g in GROUPS:
+    k = 'GET /api/crew?line=' + g[1]
+    if k not in OUT:
+        o = {'at': '2026-11-26T09:00:00+00:00', 'shift': shift, 'stations': [x for x in stations_all if x['lineCode'] == g[1]],
+             'present': [x for x in present_all if x['station']['lineCode'] == g[1]], 'inShift': [x for x in inshift_all if x['station']['lineCode'] == g[1]]}
+        OUT[k] = {'s': 200, 'ct': 'application/json', 'r': json.dumps(o, ensure_ascii=False)}
+pp = json.loads(OUT['GET /api/crew/people']['r']); OUT['GET /api/crew/people']['r'] = json.dumps(pp + list(people.values()), ensure_ascii=False)
+print('vardiya ekibi:', len(present_all), 'operatör')
+
+# ---- 9. Tek vardiya: Gündüz vardiyası 08:00–18:00 ----
+def one_shift(o):
+    if isinstance(o, dict):
+        if o.get('name') in ('1. Vardiya',): o['name'] = 'Gündüz vardiyası'
+        for k in ('end',):
+            if isinstance(o.get(k), str) and o.get('position') == 1 and o[k].endswith('T16:00:00+00:00'): o[k] = o[k].replace('T16:00:00', 'T18:00:00')
+        if 'shiftProd' in o and isinstance(o['shiftProd'], list): o['shiftProd'] = [sum(x for x in o['shiftProd'] if isinstance(x, (int, float)))]
+        if o.get('foundShift') in (2, 3): o['foundShift'] = 1
+        for k, v in list(o.items()):
+            if k == 'shifts' and isinstance(v, list) and v and isinstance(v[0], dict) and ('position' in v[0] or 'number' in v[0]):
+                o[k] = [x for x in v if (x.get('position') or x.get('number')) == 1]
+                for x in o[k]:
+                    if x.get('name') == '1. Vardiya': x['name'] = 'Gündüz vardiyası'
+                    if isinstance(x.get('end'), str): x['end'] = x['end'].replace('T00:00:00', 'T18:00:00').replace('T16:00:00', 'T18:00:00')
+            else: one_shift(v)
+    elif isinstance(o, list):
+        for v in o: one_shift(v)
+for k, v in OUT.items():
+    if v['r'] and v['r'][:1] in '[{':
+        try: o = json.loads(v['r'])
+        except Exception: continue
+        one_shift(o); v['r'] = json.dumps(o, ensure_ascii=False).replace('2. Vardiya', 'Gündüz vardiyası').replace('3. Vardiya', 'Gündüz vardiyası')
 json.dump(OUT, open(os.path.join(S, 'data', 'veri.json'), 'w'), ensure_ascii=False)
 json.dump({'groups': GROUPS, 'reasons': REASONS, 'map': MAP}, open(os.path.join(S, 'data', 'yapi.json'), 'w'), ensure_ascii=False)
 print('veri.json:', len(OUT), 'cevap ·', len(GROUPS), 'makine grubu ·', sum(g[3] for g in GROUPS), 'tezgâh')
