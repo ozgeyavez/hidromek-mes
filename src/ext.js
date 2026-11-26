@@ -331,7 +331,7 @@
     box.setAttribute('data-k', key);
     var t = function (lab, v, a, b, sub) { var tn = v >= a ? 'ok' : v >= b ? 'warn' : 'bad'; return '<div class="c"><small>' + lab + '</small><b class="' + tn + '">%' + v + '</b><i class="' + tn + '"><span style="width:' + v + '%"></span></i><em>' + sub + '</em></div>'; };
     box.innerHTML = t('OEE', s.O, 75, 60, 'Hedef %75') + t('Kullanılabilirlik', s.A, 85, 70, 'Planlı süreye göre çalışma') + t('Performans', s.P, 85, 70, 'Hız / hedef hız') + t('Kalite', s.Q, 98, 95, 'Sağlam / toplam') +
-      '<div class="note">Seçili fabrikanın ' + cards.length + ' makine grubu, ' + tw + ' tezgâh · gündüz vardiyası başından · tezgâh sayısıyla ağırlıklı<span class="hx-leg">' + srcBadge(true) + ' makineden otomatik ' + srcBadge(false) + ' operatör beyanı</span></div>';
+      '';
   }
   function demoLogin() {
     var f = document.querySelector('app-sign-in-page form.card'); if (!f || document.querySelector('.hx-demo')) return;
@@ -370,7 +370,34 @@
     b.onclick = function () { var d = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark'; document.documentElement.setAttribute('data-theme', d); try { localStorage.setItem('hx-theme', d); } catch (e) { } paint(); };
     paint(); lp.parentNode.insertBefore(b, lp);
   }
-  new MutationObserver(function () { themeBtn(); inject(); oeeCards(); oeeSummary(); demoLogin(); heroAll(); heroSync(); }).observe(document.documentElement, { childList: true, subtree: true });
+  var FLT = { src: 'all', st: 'all' };
+  function filterBar() {
+    var sum = document.querySelector('.hx-oee-sum'); if (!sum) return;
+    var bar = document.querySelector('.hx-flt');
+    if (!bar) {
+      bar = document.createElement('div'); bar.className = 'hx-flt';
+      var b = function (grp, v, lab) { return '<button type="button" data-g="' + grp + '" data-v="' + v + '">' + lab + '</button>'; };
+      bar.innerHTML = '<div class="grp">' + b('src', 'all', 'Tümü') + b('src', 'iot', srcBadge(true) + 'IoT bağlı') + b('src', 'bey', srcBadge(false) + 'Beyan') + '</div>' +
+        '<div class="grp">' + b('st', 'all', 'Tüm durumlar') + b('st', 'running', '<i class="d ok"></i>Çalışıyor') + b('st', 'down', '<i class="d bad"></i>Duruşta') + b('st', 'idle', '<i class="d idle"></i>Boşta') + '</div><span class="cnt"></span>';
+      bar.addEventListener('click', function (e) { var t = e.target.closest('button'); if (!t) return; FLT[t.dataset.g] = t.dataset.v; applyFilter(); });
+      sum.parentNode.insertBefore(bar, sum.nextSibling);
+    }
+    applyFilter();
+  }
+  function applyFilter() {
+    var bar = document.querySelector('.hx-flt'); if (!bar) return;
+    [].forEach.call(bar.querySelectorAll('button'), function (x) { x.classList.toggle('on', FLT[x.dataset.g] === x.dataset.v); });
+    var n = 0, all = 0;
+    [].forEach.call(document.querySelectorAll('article.line-card'), function (c) {
+      var code = (c.id || '').replace(/^line-/, ''), iot = !!(window.__IOT || {})[code], st = c.getAttribute('data-status') || '';
+      var stc = st === 'running' ? 'running' : st === 'idle' ? 'idle' : 'down';
+      var ok = (FLT.src === 'all' || (FLT.src === 'iot') === iot) && (FLT.st === 'all' || FLT.st === stc);
+      var tg = c; while (tg.parentElement && tg.parentElement.children.length === 1 && !tg.parentElement.matches('main, section, app-lines-page')) tg = tg.parentElement;
+      var want = ok ? '' : 'none'; if (tg.style.display !== want) tg.style.display = want; all++; if (ok) n++;
+    });
+    var cnt = bar.querySelector('.cnt'), txt = n + ' / ' + all + ' makine grubu'; if (cnt.textContent !== txt) cnt.textContent = txt;
+  }
+  new MutationObserver(function () { themeBtn(); filterBar(); inject(); oeeCards(); oeeSummary(); demoLogin(); heroAll(); heroSync(); }).observe(document.documentElement, { childList: true, subtree: true });
 
   document.addEventListener('click', function (ev) {
     var nav = ev.target.closest && ev.target.closest('a[data-hx-nav]');
