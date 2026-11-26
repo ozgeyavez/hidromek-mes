@@ -9,6 +9,15 @@ shutil.copytree(os.path.join(S, 'brand'), os.path.join(OUT, 'brand'))
 shutil.copy(os.path.join(V, 'favicon.png'), OUT)
 css = open(os.path.join(V, 'styles.css')).read().replace('url(/fonts/', 'url(fonts/')
 open(os.path.join(OUT, 'styles.css'), 'w').write(css)
+# Hidromek'te koli yok, palet var: görünen metinlerde koli -> palet (anahtar/değişken adlarına dokunmaz)
+SUF = {'': '', 'ler': 'ler', 'lerde': 'lerde', 'lerdeki': 'lerdeki', 'lerin': 'lerin', 'leri': 'leri', 'de': 'te', 'nin': 'in', 'yi': 'i', 'ye': 'e', 'si': 'i', 'dan': 'ten'}
+_kw = re.compile(r'(?<![\w{.\-])([Kk])oli(' + '|'.join(sorted([k for k in SUF if k], key=len, reverse=True)) + r')?(?![\w}\-:])')
+def koli_fix(t):
+    def lit(m):
+        x = m.group(0)
+        if ' ' not in x and not x[1:2].isupper(): return x
+        return _kw.sub(lambda k: ('P' if k.group(1) == 'K' else 'p') + 'alet' + SUF[k.group(2) or ''], x)
+    return re.sub(r'`[^`]*`', lit, t)
 PATCH = [l.split('|||') for l in open(os.path.join(S, 'ui-patch.txt'), encoding='utf8').read().splitlines() if '|||' in l]
 hits = {}
 for src, dst in [('main.js', 'main-CMN2A4ZL.js')] + [(f, f) for f in os.listdir(V) if f.startswith('chunk-') and f.endswith('.js')]:
@@ -16,6 +25,7 @@ for src, dst in [('main.js', 'main-CMN2A4ZL.js')] + [(f, f) for f in os.listdir(
     for a, b2 in PATCH:
         n = t.count(a)
         if n: hits[a] = hits.get(a, 0) + n; t = t.replace(a, b2)
+    t = koli_fix(t)
     open(os.path.join(OUT, dst), 'w', encoding='utf8').write(t)
 miss = [a for a, _ in PATCH if a not in hits]
 print('arayüz yaması:', sum(hits.values()), 'değişiklik', '· bulunamayan:', miss)

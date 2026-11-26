@@ -1,0 +1,1 @@
+import{a as s$1}from"./chunk-CO9m9FGb.672fb256.js";function l(e){let n=e.indexOf(`:`),r=n>0?e.slice(0,n):``,o=n>0?e.slice(n+1):``;return(r===`job`||r===`line`)&&o?{kind:r,value:o}:{kind:`other`,value:e}}function a(e,n){let r=n.find(o=>o.id===e)?.name;return r?s$1(r):e}function s(e,n){return e?n.find(r=>r.code===e)?.label??e:`—`}export{l as n,s as r,a as t};
