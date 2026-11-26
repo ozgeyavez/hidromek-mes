@@ -25,3 +25,6 @@ app-sign-in-page .hx-welcome{font-size:15px;color:var(--light-brand,#d0021b);fon
 .hx-hero b{font-size:26px;line-height:1.2}
 .hx-hero span{font-size:13px;color:#4a5560}
 @media (max-width:900px){.hx-hero{height:150px}.hx-hero b{font-size:20px}}
+@media (max-width:1150px){.prod:has(.logo)>div,.prod:has(.logo) .sep{display:none!important}}
+@media (min-width:601px) and (max-width:1000px){.hx-ai-stats{grid-template-columns:repeat(3,1fr)}}
+@media (max-width:1000px){.me>div{display:none!important}.hx-hero:before{background:linear-gradient(90deg,rgba(255,255,255,.95) 0,rgba(255,255,255,.85) 45%,rgba(255,255,255,0) 75%)}}
