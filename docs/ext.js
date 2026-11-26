@@ -264,6 +264,7 @@
 
   /* ---------- makine kartlarında OEE göstergeleri ---------- */
   css2 = 'article.line-card.hx-has-oee{grid-template-rows:28px 82px 24px 76px 44px 66px 30px!important}@media (max-width:900px){article.line-card.hx-has-oee{grid-template-rows:none!important}}.hx-oee{display:grid;grid-template-columns:repeat(4,1fr);gap:4px 10px;margin:0;padding:6px 0 0;border-top:1px solid var(--line)}.hx-oee div{min-width:0}.hx-oee small{display:block;font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted);font-weight:700;white-space:nowrap}.hx-oee b{font-size:16px;display:block;line-height:1.25}.hx-oee .ok{color:var(--ok)}.hx-oee .warn{color:var(--warn)}.hx-oee .bad{color:var(--bad)}.hx-oee i{display:block;height:4px;border-radius:2px;background:var(--surface-2);overflow:hidden;margin-top:3px}.hx-oee i span{display:block;height:100%;background:currentColor}.hx-oee em{grid-column:1/-1;font-style:normal;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}';
+  css2 += '.hx-oee-sum{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin:12px 0 16px}.hx-oee-sum .c{background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-xl,14px);padding:12px 16px;box-shadow:var(--shadow)}.hx-oee-sum small{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:700}.hx-oee-sum b{display:block;font-size:30px;line-height:1.2}.hx-oee-sum i{display:block;height:6px;border-radius:3px;background:var(--surface-2);overflow:hidden;margin:4px 0}.hx-oee-sum i span{display:block;height:100%;background:currentColor}.hx-oee-sum em{font-style:normal;font-size:12px;color:var(--muted)}.hx-oee-sum .ok{color:var(--ok)}.hx-oee-sum .warn{color:var(--warn)}.hx-oee-sum .bad{color:var(--bad)}.hx-oee-sum .note{grid-column:1/-1;font-size:12px;color:var(--muted);margin-top:-4px}@media (max-width:900px){.hx-oee-sum{grid-template-columns:1fr 1fr}}';
   var st2 = document.createElement('style'); st2.textContent = css2; document.head.appendChild(st2);
   function hsh(s) { var h = 0; for (var i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) % 100000; return h; }
   function oeeFor(code, status) {
@@ -287,7 +288,23 @@
       el.classList.add('slot'); var ref = card.querySelector('.stopband') || card.querySelector('.crew'); if (ref) card.insertBefore(el, ref); else card.appendChild(el); card.classList.add('hx-has-oee');
     });
   }
-  new MutationObserver(function () { inject(); oeeCards(); }).observe(document.documentElement, { childList: true, subtree: true });
+
+  function oeeSummary() {
+    var stats = document.querySelector('app-lines-page .stats'); if (!stats) return;
+    var cards = [].slice.call(document.querySelectorAll('article.line-card')); if (!cards.length) return;
+    var key = cards.map(function (c) { return c.id + c.getAttribute('data-status'); }).join('|');
+    var box = document.querySelector('.hx-oee-sum');
+    if (box && box.getAttribute('data-k') === key) return;
+    var tw = 0, s = { O: 0, A: 0, P: 0, Q: 0 }, rate = 0, target = 0;
+    cards.forEach(function (c) { var code = c.id.replace(/^line-/, ''); var o = oeeFor(code, c.getAttribute('data-status')); var g = (LN[code] || '').match(/· (\d+) tezgâh/); var w = g ? +g[1] : 1; tw += w; ['O', 'A', 'P', 'Q'].forEach(function (k) { s[k] += o[k] * w; }); });
+    ['O', 'A', 'P', 'Q'].forEach(function (k) { s[k] = Math.round(s[k] / tw); });
+    if (!box) { box = document.createElement('div'); box.className = 'hx-oee-sum'; stats.parentNode.insertBefore(box, stats.nextSibling); }
+    box.setAttribute('data-k', key);
+    var t = function (lab, v, a, b, sub) { var tn = v >= a ? 'ok' : v >= b ? 'warn' : 'bad'; return '<div class="c"><small>' + lab + '</small><b class="' + tn + '">%' + v + '</b><i class="' + tn + '"><span style="width:' + v + '%"></span></i><em>' + sub + '</em></div>'; };
+    box.innerHTML = t('OEE', s.O, 75, 60, 'Hedef %75') + t('Kullanılabilirlik', s.A, 85, 70, 'Planlı süreye göre çalışma') + t('Performans', s.P, 85, 70, 'Hız / hedef hız') + t('Kalite', s.Q, 98, 95, 'Sağlam / toplam') +
+      '<div class="note">Seçili fabrikanın ' + cards.length + ' makine grubu, ' + tw + ' tezgâh · gündüz vardiyası başından · tezgâh sayısıyla ağırlıklı</div>';
+  }
+  new MutationObserver(function () { inject(); oeeCards(); oeeSummary(); }).observe(document.documentElement, { childList: true, subtree: true });
 
   document.addEventListener('click', function (ev) {
     var nav = ev.target.closest && ev.target.closest('a[data-hx-nav]');
