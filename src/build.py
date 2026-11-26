@@ -25,7 +25,7 @@ data = json.load(open(os.path.join(S, 'data', 'veri.json' if os.path.exists(os.p
 # marka logosu göreli yoldan
 for k, v in data.items():
     if k == 'GET /api/brand':
-        b = json.loads(v['r']); b['logo'] = 'brand/logo.svg'; b['logoDark'] = 'brand/logo-dark.svg'; v['r'] = json.dumps(b, ensure_ascii=False)
+        b = json.loads(v['r']); b['logo'] = 'brand/logo.svg'; b['site'] = 'Birlikte Daha Güçlüyüz'; b['logoDark'] = 'brand/logo-dark.svg'; v['r'] = json.dumps(b, ensure_ascii=False)
 lines = json.loads(data['GET /api/lines']['r'])['lines']
 known = sorted({c for k in data for c in re.findall(r'(?:F6|KMP|F2|ESB|F1|SLN)-[A-Z]{3}', k)})
 extra_js = 'window.__TEMPLATE_LINE="F6-ROB";window.__KNOWN_LINES=' + json.dumps(known) + ';window.__LINE_NAMES=' + json.dumps({l['code']: l['name'] for l in lines}, ensure_ascii=False) + ';'

@@ -15,3 +15,12 @@
   --dark-stripe-2: #f3f4f6;
   --dark-stripe-3: #6b7280;
 }
+
+/* Hidromek görseli: giriş ekranı ve uygulama arka planı */
+app-sign-in-page .login .art{background:#eef0f1 url(banner.jpg) right -10px bottom/1080px auto no-repeat;position:relative}
+app-sign-in-page .login .art .blocks{display:none!important}
+app-sign-in-page .hx-welcome{font-size:15px;color:var(--light-brand,#d0021b);font-weight:700;margin:0 0 6px}
+.shell:not(.bare) main.content{background:linear-gradient(180deg,rgba(242,246,247,0) 0,rgba(242,246,247,.15) 140px,var(--bg,#f2f6f7) 330px),url(banner.jpg) right top/100% auto no-repeat;background-color:var(--bg,#f2f6f7)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .shell:not(.bare) main.content{background-image:none}}
+:root[data-theme="dark"] .shell:not(.bare) main.content{background-image:none}
+@media (max-width:900px){app-sign-in-page .login .art{background-size:100% auto}}
