@@ -17,11 +17,8 @@
 }
 
 /* Hidromek görseli: giriş ekranı ve uygulama arka planı */
-app-sign-in-page .login .art{background:#eef0f1 url(banner.jpg?v=2) right -10px bottom/1080px auto no-repeat;position:relative}
-app-sign-in-page .login .art .blocks{display:none!important}
 app-sign-in-page .hx-welcome{font-size:15px;color:var(--light-brand,#d0021b);font-weight:700;margin:0 0 6px}
-@media (max-width:900px){app-sign-in-page .login .art{background-size:100% auto}}
-.hx-hero{position:relative;height:200px;border-radius:16px;overflow:hidden;margin:0 0 16px;background:#e9ecee url(banner.jpg?v=2) right top/cover no-repeat;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.hx-hero{position:relative;height:200px;border-radius:16px;overflow:hidden;margin:0 0 16px;background:#e9ecee url(banner-temiz.jpg?v=1) right top/cover no-repeat;box-shadow:0 1px 3px rgba(0,0,0,.08)}
 .hx-hero:before{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(255,255,255,.92) 0,rgba(255,255,255,.75) 30%,rgba(255,255,255,0) 55%)}
 .hx-hero .t{position:absolute;left:24px;top:50%;transform:translateY(-50%);display:flex;flex-direction:column;gap:4px;color:#141414}
 .hx-hero small{font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:#d0021b}
