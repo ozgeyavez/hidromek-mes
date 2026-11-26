@@ -135,7 +135,7 @@ REASONS = [{'code': 'ARIZA', 'name': 'Arıza', 'planned': False}, {'code': 'AYAR
            {'code': 'KAMERA', 'name': 'Takım kırılması', 'planned': False}, {'code': 'KAWAHARA', 'name': 'CNC programı bekleme', 'planned': False},
            {'code': 'MALZEME', 'name': 'Malzeme bekleme', 'planned': False}, {'code': 'OPERATOR', 'name': 'Operatör yok', 'planned': False},
            {'code': 'KALITE', 'name': 'Kalite onayı bekleme', 'planned': False}, {'code': 'BAKIM', 'name': 'Planlı bakım', 'planned': True}]
-cells = lambda g: [{'code': f'{g[1]}-{i:02d}', 'lineCode': g[1], 'name': f'Tezgâh {i:02d}'} for i in range(1, g[3] + 1)]
+cells = lambda g: [{'code': f'{g[1]}-{i:02d}', 'lineCode': g[1], 'name': f'{g[1]}-{i:02d}'} for i in range(1, g[3] + 1)]
 lines_list = json.loads(OUT['GET /api/lines']['r'])
 downs = {l['code']: l['downtime'] for l in lines_list['lines']}
 setr('GET /api/processes', [{'code': fc, 'name': fname, 'state': 'active', 'lines': [g[1] for g in GROUPS if g[0] == fc],
