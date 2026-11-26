@@ -13,7 +13,10 @@
     var authed=false; try{ authed=sessionStorage.getItem('hx-auth')==='1'; }catch(e){ authed=!!window.__hxAuth; }
     var setAuth=function(v){ window.__hxAuth=v; try{ v?sessionStorage.setItem('hx-auth','1'):sessionStorage.removeItem('hx-auth'); }catch(e){} };
     if (path==='/api/session/end'){ setAuth(false); return {s:204, ct:'text/plain', r:null}; }
-    if (path==='/api/session' && method==='POST'){ setAuth(true); }
+    if (path==='/api/session' && method==='POST'){ var b={}; try{ b=JSON.parse(arguments[2]||'{}'); }catch(e){}
+      var id=String(b.sicil||b.username||b.userName||'').trim(), pw=String(b.password||'');
+      if (!(id==='1001' && pw==='hidromek')) return {s:401, ct:'application/json', r:'{"title":"Unauthorized","status":401}'};
+      setAuth(true); }
     else if (path==='/api/session' && method==='GET' && !authed && !window.__hxAuth){ return {s:401, ct:'application/json', r:'{"title":"Unauthorized","status":401}'}; }
     for (var i=0;i<H.length;i++){ var h=H[i]; if (h.m===method && h.re.test(path)) { var out=h.fn({path:path, query:parseQ(q), url:u, method:method}); if (out) return out; } }
     var exact = D[method+' '+path+(q?'?'+q:'')]; if (exact) return exact;
@@ -69,7 +72,7 @@
 
   /* fetch */
   var realFetch = window.fetch;
-  window.fetch=function(input, init){ var u=typeof input==='string'?input:(input&&input.url)||String(input); var m=((init&&init.method)||(input&&input.method)||'GET').toUpperCase(); if(!isApi(u)) return realFetch.apply(this,arguments); var res=lookup(m,u); if (window.__onMutation && m!=='GET') try{ window.__onMutation(m,u,init&&init.body); }catch(e){} return new Promise(function(ok){ setTimeout(function(){ ok(new Response(res.r==null||res.s===204?null:res.r,{status:res.s,headers:{'content-type':res.ct}})); },30); }); };
+  window.fetch=function(input, init){ var u=typeof input==='string'?input:(input&&input.url)||String(input); var m=((init&&init.method)||(input&&input.method)||'GET').toUpperCase(); if(!isApi(u)) return realFetch.apply(this,arguments); var res=lookup(m,u,init&&init.body); if (window.__onMutation && m!=='GET') try{ window.__onMutation(m,u,init&&init.body); }catch(e){} return new Promise(function(ok){ setTimeout(function(){ ok(new Response(res.r==null||res.s===204?null:res.r,{status:res.s,headers:{'content-type':res.ct}})); },30); }); };
 
   /* Canlı bağlantı (SignalR WebSocket): el sıkışmayı karşılar, çağrılara boş sonuç döner */
   var RealWS = window.WebSocket;

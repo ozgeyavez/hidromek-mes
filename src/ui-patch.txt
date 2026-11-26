@@ -29,4 +29,5 @@ labels:`Üretilen etiket`|||labels:`Üretilen adet`
 `SD `|||`İE `
 window.location.assign(`/login`)|||window.location.assign(document.baseURI+`login`)
 formlar ve kamera sonuçları tek yerde. Girdiğinizde rolünüzün ekranları açılır.`|||formlar, kalite ve bakım kayıtları tek yerde. IFS ile entegre çalışır; girdiğinizde rolünüzün ekranları açılır.`
-`Sicil numaranız ve şifrenizle girin.`|||`Sicil numaranız ve şifrenizle girin. Demo sürümde herhangi bir sicil ve şifre kabul edilir.`
+`Sicil numaranız ve şifrenizle girin.`|||`Sicil numaranız ve şifrenizle girin. Demo hesabı: sicil no 1001, şifre hidromek.`
+signIn:{product:`Üretim takip sistemi`|||signIn:{product:`Akıllı Üretim Yönetim Sistemi`

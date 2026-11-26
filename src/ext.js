@@ -305,7 +305,18 @@
     box.innerHTML = t('OEE', s.O, 75, 60, 'Hedef %75') + t('Kullanılabilirlik', s.A, 85, 70, 'Planlı süreye göre çalışma') + t('Performans', s.P, 85, 70, 'Hız / hedef hız') + t('Kalite', s.Q, 98, 95, 'Sağlam / toplam') +
       '<div class="note">Seçili fabrikanın ' + cards.length + ' makine grubu, ' + tw + ' tezgâh · gündüz vardiyası başından · tezgâh sayısıyla ağırlıklı</div>';
   }
-  new MutationObserver(function () { inject(); oeeCards(); oeeSummary(); }).observe(document.documentElement, { childList: true, subtree: true });
+  function demoLogin() {
+    var f = document.querySelector('app-sign-in-page form.card'); if (!f || document.querySelector('.hx-demo')) return;
+    var d = document.createElement('div'); d.className = 'hx-demo';
+    d.innerHTML = '<b>Demo hesabı</b><span>Sicil no <code>1001</code></span><span>Şifre <code>hidromek</code></span><button type="button">Bilgileri doldur</button>';
+    d.style.cssText = 'margin-top:14px;display:flex;flex-wrap:wrap;align-items:center;gap:10px 18px;padding:12px 16px;border:1px dashed var(--line,#ccd);border-radius:12px;font-size:14px;background:var(--surface,#fff)';
+    [].forEach.call(d.querySelectorAll('code'), function (c) { c.style.cssText = 'font:700 14px ui-monospace,Menlo,monospace;padding:2px 6px;border-radius:5px;background:var(--surface-2,#eef)'; });
+    var b = d.querySelector('button'); b.style.cssText = 'margin-left:auto;font:inherit;font-weight:700;border:1px solid var(--line,#ccd);background:transparent;border-radius:999px;padding:5px 12px;cursor:pointer;color:inherit';
+    b.onclick = function () { var put = function (n, v) { var i = f.querySelector('input[name=' + n + ']'); if (i) { i.value = v; i.dispatchEvent(new Event('input', { bubbles: true })); } }; put('sicil', '1001'); put('password', 'hidromek'); };
+    d.style.boxSizing = 'border-box'; d.style.maxWidth = (f.offsetWidth || 540) + 'px';
+    f.parentNode.insertBefore(d, f.nextSibling);
+  }
+  new MutationObserver(function () { inject(); oeeCards(); oeeSummary(); demoLogin(); }).observe(document.documentElement, { childList: true, subtree: true });
 
   document.addEventListener('click', function (ev) {
     var nav = ev.target.closest && ev.target.closest('a[data-hx-nav]');
