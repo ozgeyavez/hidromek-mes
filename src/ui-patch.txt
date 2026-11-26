@@ -1,0 +1,29 @@
+process:{label:`Proses`|||process:{label:`Fabrika`
+`Bugün paketlenen {{unit}}`|||`Bugün üretilen {{unit}}`
+`Bugün hatalı koli`|||`Bugün hatalı parça`
+boxes:`{{count}} koli`|||boxes:`{{count}} parça`
+todayCount:`Bugün {{boxes}} koli · {{labels}} {{unit}}`|||todayCount:`Bugün {{labels}} {{unit}}`
+noCount:`Koli sayımı yok`|||noCount:`Sayım yok`
+faulty:`Bu işte hatalı koli`|||faulty:`Bu işte hatalı parça`
+article:`artikel`|||article:`malzeme`
+ids:`SD / SOB`|||ids:`İE / IFS sipariş`
+`Müşteri notu`|||`Planlama notu`
+`Müşteri`|||`Talep eden`
+kokteyl:`Kokteyl`|||kokteyl:`Varyant`
+packing:`Ambalaj`|||packing:`Sevk birimi`
+salesOrder:`Sipariş`|||salesOrder:`IFS sipariş`
+article:`Artikel`|||article:`Malzeme no`
+product:`Ürün adı`|||product:`Parça adı`
+`SD {{|||`İE {{
+ SD {{||| İE {{
+sd:`SD`|||sd:`İE`
+labels:`Üretilen etiket`|||labels:`Üretilen adet`
+`Bozuk etiket`|||`Hatalı adet`
+`Hedef {{target}} etiket / 2 saat`|||`Hedef {{target}} adet / 2 saat`
+`Pakon bozuk`|||`Hatalı parça`
+`Paketlenen etiket`|||`Üretilen adet`
+`Paketlenen`|||`Üretilen`
+`SD ya da SOB`|||`İE ya da IFS sipariş`
+`Form, SD, istasyon, kişi`|||`Form, İE, istasyon, kişi`
+`start`:`camera`));startLabel|||`start`:`board`));startLabel
+`SD `|||`İE `

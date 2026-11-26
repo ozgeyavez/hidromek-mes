@@ -1,0 +1,1 @@
+import{On as oe,at as C}from"./main-CMN2A4ZL.js";var r=300;var n=class{timer;constructor(){C(oe).onDestroy(()=>this.cancel())}later(e,o=r){this.cancel(),this.timer=setTimeout(()=>{this.timer=void 0,e()},o)}now(e){this.cancel(),e()}cancel(){this.timer!==void 0&&(clearTimeout(this.timer),this.timer=void 0)}};export{n as t};

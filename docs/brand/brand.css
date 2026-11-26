@@ -1,0 +1,17 @@
+/* Hidromek marka renkleri (prototip): siyah, beyaz, kırmızı. */
+:root:root {
+  --light-brand: #d0021b;
+  --light-brand-deep: #9b0014;
+  --light-brand-soft: #fde8ea;
+  --light-brand-ink: #ffffff;
+  --light-stripe-1: #d0021b;
+  --light-stripe-2: #141414;
+  --light-stripe-3: #9aa3ad;
+  --dark-brand: #ff3b4e;
+  --dark-brand-deep: #ff6b78;
+  --dark-brand-soft: #3a0f14;
+  --dark-brand-ink: #ffffff;
+  --dark-stripe-1: #ff3b4e;
+  --dark-stripe-2: #f3f4f6;
+  --dark-stripe-3: #6b7280;
+}

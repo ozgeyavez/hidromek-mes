@@ -1,0 +1,5 @@
+dist/
+src/data/mcc-kayit.json
+src/shell-snapshot.html
+src/vendor/brand/
+.DS_Store
