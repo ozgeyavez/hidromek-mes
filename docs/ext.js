@@ -103,7 +103,7 @@
   var tabs = function (key, list, def) { var cur = S.tab[key] || def; return '<div class="hx-tabs">' + list.map(function (t) { return '<button data-hx="tab" data-k="' + key + '" data-x="' + t[0] + '" class="' + (cur === t[0] ? 'on' : '') + '">' + t[1] + '</button>'; }).join('') + '</div>'; };
   var cur = function (k, d) { return S.tab[k] || d; };
   var facSel = function () { return '<label class="hx-fld">Fabrika<select class="hx-sel" data-hx-f="fac">' + FACTS.map(function (f) { return '<option value="' + f.code + '"' + (S.fac === f.code ? ' selected' : '') + '>' + esc(f.name) + '</option>'; }).join('') + '</select></label>'; };
-  var head = function (crumb, title, sub, right) { return '<div class="hx-bar hx-head"><div><div class="hx-h1">' + title + '</div></div><span class="hx-sp"></span>' + (right || '') + '</div>' + heroHtml(); };
+  var head = function (crumb, title, sub, right) { return heroHtml() + '<div class="hx-bar hx-head"><div><div class="hx-h1">' + title + '</div></div><span class="hx-sp"></span>' + (right || '') + '</div>'; };
   function heroHtml() {
     var fsel = document.querySelector('app-process-picker select'); var fab = fsel && fsel.selectedIndex >= 0 ? fsel.options[fsel.selectedIndex].text : 'Fabrika 6';
     var hr = new Date().getHours(), hi = hr < 12 ? 'Günaydın' : hr < 18 ? 'İyi çalışmalar' : 'İyi akşamlar';
@@ -316,7 +316,6 @@
   }
   function oeeSummary() {
     var stats = document.querySelector('app-lines-page .stats'); if (!stats) return;
-    heroBand(stats);
     var cards = [].slice.call(document.querySelectorAll('article.line-card')); if (!cards.length) return;
     var key = cards.map(function (c) { return c.id + c.getAttribute('data-status'); }).join('|');
     var box = document.querySelector('.hx-oee-sum');
@@ -345,12 +344,11 @@
     f.parentNode.insertBefore(d, f.nextSibling);
   }
   function heroAll() {
-    var pg = document.querySelector('main.content > router-outlet + *'); if (!pg || /SIGN-IN|LINES-PAGE/.test(pg.tagName)) return;
-    if (pg.querySelector('.hx-hero')) return;
-    var h1 = pg.querySelector('h1'); if (!h1) { if (!pg.firstElementChild) return; var t0 = document.createElement('div'); t0.innerHTML = heroHtml(); pg.insertBefore(t0.firstChild, pg.firstChild); return; }
-    var anchor = h1; while (anchor.parentElement && anchor.parentElement !== pg && anchor.parentElement.children.length <= 3 && anchor.parentElement.parentElement !== pg) anchor = anchor.parentElement;
-    if (anchor.parentElement && anchor.parentElement !== pg && anchor.parentElement.parentElement === pg) anchor = anchor.parentElement;
-    var tmp = document.createElement('div'); tmp.innerHTML = heroHtml(); anchor.parentNode.insertBefore(tmp.firstChild, anchor.nextSibling);
+    var pg = document.querySelector('main.content > router-outlet + *'); if (!pg || /SIGN-IN/.test(pg.tagName)) return;
+    if (pg.querySelector(':scope > .hx-hero')) return;
+    var old = pg.querySelector('.hx-hero'); if (old) old.remove();
+    if (!pg.firstElementChild) return;
+    var t0 = document.createElement('div'); t0.innerHTML = heroHtml(); pg.insertBefore(t0.firstChild, pg.firstChild);
   }
   function heroSync() {
     var hs = document.querySelectorAll('.hx-hero b'); if (!hs.length) return;
