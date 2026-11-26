@@ -105,3 +105,21 @@ app-tasks-page .stats .stat b{font-size:20px!important;line-height:1.1!important
 .hx-flt .hx-src{width:18px;height:18px;margin:0}.hx-flt .hx-src svg{width:11px;height:11px}
 .hx-flt .d{width:8px;height:8px;border-radius:50%;display:inline-block}.hx-flt .d.ok{background:var(--ok)}.hx-flt .d.bad{background:var(--bad)}.hx-flt .d.idle{background:var(--idle)}
 .hx-flt .cnt{margin-left:auto;font-size:12px;color:var(--muted)}
+
+/* koyu tema kontrast düzeltmeleri */
+:root:root{--dark-on-status:#15171a}
+:root[data-theme="dark"] .hx-btn.ok,:root[data-theme="dark"] .hx-job,:root[data-theme="dark"] .hx-job *{color:#15171a!important}
+:root[data-theme="dark"] .hx-ai-conf{color:#c3b5ff!important}
+:root[data-theme="dark"] .hx-hero{background-color:#9a9fa5!important;background-blend-mode:multiply!important}
+:root[data-theme="dark"] .hx-hero:before{background:linear-gradient(90deg,var(--surface) 0,var(--surface) 50%,rgba(37,41,46,.55) 64%,rgba(37,41,46,.12) 80%)!important}
+:root[data-theme="dark"] app-sign-in-page .art .blocks{filter:brightness(.72) contrast(1.05) saturate(.8)!important;opacity:.85!important}
+/* her yerde IoT / beyan simgesi */
+.hx-src.sm{width:18px;height:18px;margin:0 6px 0 0;vertical-align:-4px}.hx-src.sm svg{width:11px;height:11px}
+/* Makinelerim: üst sayı ve OEE özet satırları kaldırıldı */
+app-lines-page .stats,.hx-oee-sum{display:none!important}
+/* üst çizgi tamamen kırmızı */
+:root:root{--light-stripe-1:#d0021b;--light-stripe-2:#d0021b;--light-stripe-3:#d0021b;--dark-stripe-1:#e5525f;--dark-stripe-2:#e5525f;--dark-stripe-3:#e5525f}
+/* koyu temada fotoğraf canlı kalsın */
+:root[data-theme="dark"] .hx-hero{background-color:#d4d7db!important;background-blend-mode:multiply!important}
+:root[data-theme="dark"] .hx-hero:before{background:linear-gradient(90deg,var(--surface) 0,var(--surface) 48%,rgba(37,41,46,.35) 60%,rgba(37,41,46,0) 72%)!important}
+:root[data-theme="dark"] app-sign-in-page .art .blocks{filter:brightness(.9) saturate(.95)!important;opacity:1!important}

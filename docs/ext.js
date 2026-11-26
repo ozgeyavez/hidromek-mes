@@ -397,7 +397,33 @@
     });
     var cnt = bar.querySelector('.cnt'), txt = n + ' / ' + all + ' makine grubu'; if (cnt.textContent !== txt) cnt.textContent = txt;
   }
-  new MutationObserver(function () { themeBtn(); filterBar(); inject(); oeeCards(); oeeSummary(); demoLogin(); heroAll(); heroSync(); }).observe(document.documentElement, { childList: true, subtree: true });
+  var TYPEIOT = null, iconT = 0;
+  function typeMap() {
+    if (TYPEIOT) return TYPEIOT; TYPEIOT = {}; var ln = window.__LINE_NAMES || {}, io = window.__IOT || {};
+    Object.keys(ln).forEach(function (c) { TYPEIOT[ln[c].split(' · ')[0]] = !!io[c]; }); return TYPEIOT;
+  }
+  var CODE_RX = /^\s*((?:F6|KMP|F2|ESB|F1|SLN)-[A-Z]{3})(?:-\d+(?:-T)?)?\b/;
+  function iconize() {
+    var roots = document.querySelectorAll('main.content, .hx-root'); if (!roots.length) return;
+    var tm = typeMap(), names = Object.keys(tm).sort(function (a, b) { return b.length - a.length; });
+    [].forEach.call(roots, function (root) {
+      var w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), n, todo = [];
+      while ((n = w.nextNode())) {
+        var el = n.parentElement; if (!el || el.closest('.hx-src, .hx-hero, .hx-flt, .hx-oee-sum, select, option, button, input, textarea, svg, article.line-card h2, .hx-code, nav, [data-hxi], app-job-orders-page td:last-child')) continue;
+        var t = n.textContent; if (!t || t.length > 160) continue;
+        var iot = null, m = t.match(CODE_RX);
+        if (m) iot = !!(window.__IOT || {})[m[1]];
+        else { var tt = t.replace(/^\s+/, ''); for (var i = 0; i < names.length; i++) { var nm = names[i]; if (tt.indexOf(nm) === 0 && /^( · \d+ tezgâh|$|:| ·)/.test(tt.slice(nm.length))) { iot = tm[nm]; break; } } }
+        if (iot === null) continue;
+        if (el.firstChild !== n && el.firstChild && el.firstChild.nodeType === 1 && el.firstChild.classList && el.firstChild.classList.contains('hx-src')) continue;
+        todo.push([n, el, iot]);
+      }
+      todo.forEach(function (x) { var sp = document.createElement('span'); sp.innerHTML = srcBadge(x[2]); var b = sp.firstChild; b.classList.add('sm'); x[1].insertBefore(b, x[0]); x[1].setAttribute('data-hxi', '1'); if (x[1].scrollWidth > x[1].clientWidth + 2 && x[1].clientWidth < 140) b.remove(); });
+    });
+    [].forEach.call(document.querySelectorAll('main.content a, main.content button, main.content span'), function (a) { var t = a.textContent.trim(); if (/^Kamera sonuçları/.test(t) && t.length < 24 && a.style.display !== 'none') a.style.display = 'none'; });
+  }
+  function iconLater() { if (iconT) return; iconT = setTimeout(function () { iconT = 0; iconize(); }, 120); }
+  new MutationObserver(function () { themeBtn(); filterBar(); iconLater(); inject(); oeeCards(); oeeSummary(); demoLogin(); heroAll(); heroSync(); }).observe(document.documentElement, { childList: true, subtree: true });
 
   document.addEventListener('click', function (ev) {
     var nav = ev.target.closest && ev.target.closest('a[data-hx-nav]');
