@@ -40,6 +40,16 @@ h = h.replace('href="/brand/brand.css"', 'href="brand/brand.css?v=' + VER + '"')
 shim = '<style>[data-tab="camera"],[data-tab-panel="camera"],a[href*="tab=camera"],a[href*="camera-codes"]{display:none!important}</style><script src="data.js?v=' + VER + '"></script>' + ('<script src="handlers.js"></script>' if os.path.exists(extra) else '') + '<script src="mock.js?v=' + VER + '"></script>'
 h = h.replace('<script src="main-CMN2A4ZL.js" type="module">', shim + '<script src="ext.js?v=' + VER + '" defer></script><script src="main-CMN2A4ZL.js" type="module">')
 h = h.replace('url(/fonts/', 'url(fonts/')
+# Önbellek: JS dosya adlarına içerik özeti eklenir (tarayıcı eski sürümü tutamaz)
+import hashlib
+jsf = sorted(f for f in os.listdir(OUT) if f.endswith('.js') and (f.startswith('chunk-') or f.startswith('main-')))
+HS = hashlib.md5(b''.join(open(os.path.join(OUT, f), 'rb').read() for f in jsf)).hexdigest()[:8]
+REN = {f: f[:-3] + '.' + HS + '.js' for f in jsf}
+rx = re.compile('|'.join(re.escape(f) for f in jsf))
+for f in jsf:
+    t = open(os.path.join(OUT, f), encoding='utf8').read(); t = rx.sub(lambda m: REN[m.group(0)], t)
+    open(os.path.join(OUT, REN[f]), 'w', encoding='utf8').write(t); os.remove(os.path.join(OUT, f))
+h = rx.sub(lambda m: REN[m.group(0)], h)
 open(os.path.join(OUT, 'index.html'), 'w').write(h)
 open(os.path.join(OUT, 'app.html'), 'w').write(h)
 # GitHub Pages: docs/ (alt yolda yayın, derin bağlantı için 404.html)

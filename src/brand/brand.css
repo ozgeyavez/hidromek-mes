@@ -28,3 +28,20 @@ app-sign-in-page .hx-welcome{font-size:15px;color:var(--light-brand,#d0021b);fon
 @media (max-width:1150px){.prod:has(.logo)>div,.prod:has(.logo) .sep{display:none!important}}
 @media (min-width:601px) and (max-width:1000px){.hx-ai-stats{grid-template-columns:repeat(3,1fr)}}
 @media (max-width:1000px){.me>div{display:none!important}.hx-hero:before{background:linear-gradient(90deg,rgba(255,255,255,.95) 0,rgba(255,255,255,.85) 45%,rgba(255,255,255,0) 75%)}}
+app-sign-in-page .art>*:not(.blocks){position:relative;z-index:1}
+app-sign-in-page .art .logo{max-width:340px;height:auto}
+app-sign-in-page .art .intro{align-self:center}
+/* kompakt üst alan: makine kartları daha yukarıda */
+.hx-hero{height:84px!important;margin:0 0 12px!important;background-position:right 42%!important;background-size:62% auto!important;background-color:#f4f4f4!important}
+.hx-hero:before{background:linear-gradient(90deg,#f4f4f4 0,#f4f4f4 40%,rgba(244,244,244,0) 60%)!important}
+.hx-hero .t{left:18px!important;gap:2px!important}
+.hx-hero small{font-size:10px!important}
+.hx-hero b{font-size:18px!important}
+.hx-hero span{font-size:12px!important}
+.hx-oee-sum{gap:10px!important;margin:10px 0 12px!important}
+.hx-oee-sum .c{padding:8px 12px!important;display:grid!important;grid-template-columns:1fr auto;align-items:center;column-gap:8px}
+.hx-oee-sum .c small{grid-column:1}
+.hx-oee-sum .c b{grid-column:2;grid-row:1;font-size:20px!important;line-height:1.1!important}
+.hx-oee-sum .c i{grid-column:1/-1;height:4px!important;margin:4px 0 0!important}
+.hx-oee-sum .c em{display:none!important}
+@media (max-width:1000px){.hx-hero{background-size:auto 100%!important}}
