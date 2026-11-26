@@ -344,7 +344,15 @@
     d.style.boxSizing = 'border-box'; d.style.maxWidth = (f.offsetWidth || 540) + 'px';
     f.parentNode.insertBefore(d, f.nextSibling);
   }
-  new MutationObserver(function () { inject(); oeeCards(); oeeSummary(); demoLogin(); }).observe(document.documentElement, { childList: true, subtree: true });
+  function heroAll() {
+    var pg = document.querySelector('main.content > router-outlet + *'); if (!pg || /SIGN-IN|LINES-PAGE/.test(pg.tagName)) return;
+    if (pg.querySelector('.hx-hero')) return;
+    var h1 = pg.querySelector('h1'); if (!h1) { if (!pg.firstElementChild) return; var t0 = document.createElement('div'); t0.innerHTML = heroHtml(); pg.insertBefore(t0.firstChild, pg.firstChild); return; }
+    var anchor = h1; while (anchor.parentElement && anchor.parentElement !== pg && anchor.parentElement.children.length <= 3 && anchor.parentElement.parentElement !== pg) anchor = anchor.parentElement;
+    if (anchor.parentElement && anchor.parentElement !== pg && anchor.parentElement.parentElement === pg) anchor = anchor.parentElement;
+    var tmp = document.createElement('div'); tmp.innerHTML = heroHtml(); anchor.parentNode.insertBefore(tmp.firstChild, anchor.nextSibling);
+  }
+  new MutationObserver(function () { inject(); oeeCards(); oeeSummary(); demoLogin(); heroAll(); }).observe(document.documentElement, { childList: true, subtree: true });
 
   document.addEventListener('click', function (ev) {
     var nav = ev.target.closest && ev.target.closest('a[data-hx-nav]');
