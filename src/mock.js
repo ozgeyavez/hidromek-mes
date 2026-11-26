@@ -10,6 +10,11 @@
   function lookup(method, url){
     url = String(url);
     var u = new URL(url, location.href); var path=u.pathname.replace(/^.*?(\/api\/|\/health)/, '$1'); var q=u.search.replace(/^\?/,'');
+    var authed=false; try{ authed=sessionStorage.getItem('hx-auth')==='1'; }catch(e){ authed=!!window.__hxAuth; }
+    var setAuth=function(v){ window.__hxAuth=v; try{ v?sessionStorage.setItem('hx-auth','1'):sessionStorage.removeItem('hx-auth'); }catch(e){} };
+    if (path==='/api/session/end'){ setAuth(false); return {s:204, ct:'text/plain', r:null}; }
+    if (path==='/api/session' && method==='POST'){ setAuth(true); }
+    else if (path==='/api/session' && method==='GET' && !authed && !window.__hxAuth){ return {s:401, ct:'application/json', r:'{"title":"Unauthorized","status":401}'}; }
     for (var i=0;i<H.length;i++){ var h=H[i]; if (h.m===method && h.re.test(path)) { var out=h.fn({path:path, query:parseQ(q), url:u, method:method}); if (out) return out; } }
     var exact = D[method+' '+path+(q?'?'+q:'')]; if (exact) return exact;
     /* kaydı olmayan makine grubu: boştaki bir grubun cevabı şablon olarak kullanılır */

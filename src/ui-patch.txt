@@ -27,3 +27,6 @@ labels:`Üretilen etiket`|||labels:`Üretilen adet`
 `Form, SD, istasyon, kişi`|||`Form, İE, istasyon, kişi`
 `start`:`camera`));startLabel|||`start`:`board`));startLabel
 `SD `|||`İE `
+window.location.assign(`/login`)|||window.location.assign(document.baseURI+`login`)
+formlar ve kamera sonuçları tek yerde. Girdiğinizde rolünüzün ekranları açılır.`|||formlar, kalite ve bakım kayıtları tek yerde. IFS ile entegre çalışır; girdiğinizde rolünüzün ekranları açılır.`
+`Sicil numaranız ve şifrenizle girin.`|||`Sicil numaranız ve şifrenizle girin. Demo sürümde herhangi bir sicil ve şifre kabul edilir.`
