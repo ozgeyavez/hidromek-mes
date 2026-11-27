@@ -409,7 +409,7 @@
     [].forEach.call(roots, function (root) {
       var w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), n, todo = [];
       while ((n = w.nextNode())) {
-        var el = n.parentElement; if (!el || el.closest('.hx-src, .hx-hero, .hx-flt, .hx-oee-sum, select, option, button, input, textarea, svg, article.line-card h2, .hx-code, nav, [data-hxi], app-job-orders-page td:last-child, app-tasks-page a.task')) continue;
+        var el = n.parentElement; if (!el || el.closest('.hx-src, .hx-hero, .hx-flt, .hx-oee-sum, select, option, button, input, textarea, svg, article.line-card h2, .hx-code, nav, [data-hxi], app-job-orders-page td:last-child, app-tasks-page a.task, .hx-tv')) continue;
         var t = n.textContent; if (!t || t.length > 160) continue;
         var iot = null, m = t.match(CODE_RX);
         if (m) iot = !!(window.__IOT || {})[m[1]];
@@ -427,42 +427,38 @@
   var TCAT = { 'pool-overdue': 'plan', 'queue-empty': 'plan', 'pool-waiting': 'plan', 'faulty-boxes': 'kal', 'nonconformity-to-confirm': 'kal', 'machine-stopped': 'ure', 'start-next': 'ure', 'breakdown-open': 'bak', 'periodic-late': 'bak' };
   var CATL = { plan: ['Planlama', '<path d="M4 5h16v15H4z"/><path d="M4 10h16M9 3v4M15 3v4"/>'], kal: ['Kalite', '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>'], ure: ['Üretim', '<path d="M3 4h8v7H3zM13 4h8v7h-8zM3 13h8v7H3zM13 13h8v7h-8z"/>'], bak: ['Bakım', '<path d="M14.7 6.3a4 4 0 00-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 005.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/>'], diger: ['Görev', '<circle cx="12" cy="12" r="8"/>'] };
   var SEVL = { critical: ['Kritik', 'bad'], warning: ['Uyarı', 'warn'], info: ['Bilgi', 'info'] };
-  var TF = { sev: 'all', cat: 'all' };
   function tasksUI() {
     var pg = document.querySelector('app-tasks-page'); if (!pg) return;
     var list = pg.querySelector('.tasks'); if (!list) return;
-    var tasks = [].slice.call(list.querySelectorAll('a.task'));
-    tasks.forEach(function (a) {
-      if (a.querySelector('.hx-cat')) return;
-      var cat = TCAT[a.dataset.kind] || 'diger', sv = SEVL[a.dataset.severity] || ['Bilgi', 'info'];
-      a.dataset.cat = cat;
-      var top = document.createElement('div'); top.className = 'hx-ttop';
-      top.innerHTML = '<span class="hx-cat c-' + cat + '"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + CATL[cat][1] + '</svg>' + CATL[cat][0] + '</span><span class="hx-pill ' + sv[1] + '">' + sv[0] + '</span>';
-      a.insertBefore(top, a.firstChild);
-      if (a.dataset.machine) { var mc = document.createElement('span'); mc.className = 'hx-mc'; mc.innerHTML = srcBadge(!!(window.__IOT || {})[a.dataset.machine]).replace('hx-src', 'hx-src sm') + a.dataset.machine + (a.dataset.job ? ' · İE ' + a.dataset.job : ''); a.appendChild(mc); }
+    var as = [].slice.call(list.querySelectorAll('a.task')); if (!as.length) return;
+    var key = as.map(function (a) { return a.dataset.kind + (a.querySelector('b') || {}).textContent; }).join('|');
+    var view = pg.querySelector('.hx-tv'); if (view && view.dataset.k === key) return;
+    var T = as.map(function (a, i) {
+      var t = ((a.querySelector('.text b') || {}).textContent || '').trim(), sm = ((a.querySelector('.text small') || {}).textContent || '').trim();
+      var mm = t.match(/^(.+? · \d+ tezgâh)(?::\s*| )(.*)$/);
+      return { i: i, kind: a.dataset.kind, sev: a.dataset.severity, cat: TCAT[a.dataset.kind] || 'diger', mach: a.dataset.machine || '', job: a.dataset.job || '', name: mm ? mm[1] : '', msg: mm ? mm[2] : t, full: t, sm: sm, go: ((a.querySelector('.go') || {}).textContent || '').trim() };
     });
-    var bar = pg.querySelector('.hx-tflt');
-    if (!bar) {
-      bar = document.createElement('div'); bar.className = 'hx-flt hx-tflt';
-      list.parentNode.insertBefore(bar, list);
-      bar.addEventListener('click', function (e) { var t = e.target.closest('button'); if (!t) return; TF[t.dataset.g] = t.dataset.v; tasksApply(); });
-    }
-    var cnt = function (f) { return tasks.filter(f).length; };
-    var key = tasks.length + ':' + cnt(function (a) { return a.dataset.severity === 'critical'; });
-    if (bar.dataset.k !== key) {
-      bar.dataset.k = key;
-      var b = function (g, v, lab, n) { return '<button type="button" data-g="' + g + '" data-v="' + v + '">' + lab + ' <em>' + n + '</em></button>'; };
-      bar.innerHTML = '<div class="grp">' + b('sev', 'all', 'Tümü', tasks.length) + b('sev', 'critical', '<i class="d bad"></i>Kritik', cnt(function (a) { return a.dataset.severity === 'critical'; })) + b('sev', 'warning', '<i class="d warn"></i>Uyarı', cnt(function (a) { return a.dataset.severity === 'warning'; })) + b('sev', 'info', '<i class="d info"></i>Bilgi', cnt(function (a) { return a.dataset.severity === 'info'; })) + '</div>' +
-        '<div class="grp">' + b('cat', 'all', 'Tüm alanlar', tasks.length) + ['ure', 'bak', 'kal', 'plan'].map(function (k) { return b('cat', k, CATL[k][0], cnt(function (a) { return a.dataset.cat === k; })); }).join('') + '</div><span class="cnt"></span>';
-    }
-    tasksApply();
-  }
-  function tasksApply() {
-    var pg = document.querySelector('app-tasks-page'); if (!pg) return; var bar = pg.querySelector('.hx-tflt'); if (!bar) return;
-    [].forEach.call(bar.querySelectorAll('button'), function (x) { x.classList.toggle('on', TF[x.dataset.g] === x.dataset.v); });
-    var n = 0, all = 0;
-    [].forEach.call(pg.querySelectorAll('.tasks a.task'), function (a) { var ok = (TF.sev === 'all' || a.dataset.severity === TF.sev) && (TF.cat === 'all' || a.dataset.cat === TF.cat); var w = ok ? '' : 'none'; if (a.style.display !== w) a.style.display = w; all++; if (ok) n++; });
-    var c = bar.querySelector('.cnt'), t = n + ' / ' + all + ' iş'; if (c.textContent !== t) c.textContent = t;
+    // periyodik bakımları makine bazında topla
+    var rows = [], per = {};
+    T.forEach(function (x) {
+      if (x.kind === 'periodic-late' && x.mach) { if (!per[x.mach]) { per[x.mach] = { i: x.i, kind: x.kind, sev: x.sev, cat: 'bak', mach: x.mach, name: x.name, items: [], go: x.go }; rows.push(per[x.mach]); } per[x.mach].items.push(x.msg.replace(/ gecikti$/, '')); }
+      else rows.push(x);
+    });
+    rows.forEach(function (r) { if (r.items) { r.msg = r.items.length + ' periyodik bakım gecikti'; r.sm = r.items.join(' · '); } });
+    var crit = rows.filter(function (r) { return r.sev === 'critical'; }), warn = rows.filter(function (r) { return r.sev === 'warning'; }), info = rows.filter(function (r) { return r.sev !== 'critical' && r.sev !== 'warning'; });
+    var nC = T.filter(function (x) { return x.sev === 'critical'; }).length, nW = T.filter(function (x) { return x.sev === 'warning'; }).length, nI = T.length - nC - nW;
+    var run = ((pg.querySelector('.stats [data-count=running]') || {}).textContent || '').trim();
+    var catTag = function (c) { return '<span class="hx-cat c-' + c + '"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + CATL[c][1] + '</svg>' + CATL[c][0] + '</span>'; };
+    var mchip = function (r) { return r.mach ? '<span class="hx-mc">' + srcBadge(!!(window.__IOT || {})[r.mach]).replace('hx-src', 'hx-src sm') + esc(r.name ? r.name.split(' · ')[0] : r.mach) + ' <i>' + esc(r.mach) + '</i></span>' : '<span class="hx-mc"><i>Fabrika geneli</i></span>'; };
+    var card = function (r) { return '<div class="hx-tc" data-i="' + r.i + '"><div class="top">' + catTag(r.cat) + '<span class="hx-pill bad">Kritik</span></div><b>' + esc(r.msg.charAt(0).toUpperCase() + r.msg.slice(1)) + '</b><small>' + esc(r.sm) + '</small><div class="bot">' + mchip(r) + '<span class="go">' + esc(r.go) + '</span></div></div>'; };
+    var row = function (r) { return '<div class="hx-tr s-' + r.sev + '" data-i="' + r.i + '"><i class="d"></i>' + catTag(r.cat) + '<div class="tx"><b>' + esc(r.msg.charAt(0).toUpperCase() + r.msg.slice(1)) + '</b><small>' + esc(r.sm) + '</small></div>' + mchip(r) + '<span class="go">' + esc(r.go) + '</span></div>'; };
+    var html = '<div class="hx-tsum"><div class="l"><small>Vardiya görev özeti</small><b>' + (function () { var u = crit.filter(function (r) { return r.kind === 'machine-stopped'; })[0] || crit[0]; return u ? 'En acil: ' + esc(u.name ? u.name.split(' · ')[0] + ' · ' : '') + esc(u.msg) + (u.sm ? ' <span class="sub">' + esc(u.sm) + '</span>' : '') : 'Acil iş yok'; })() + '</b></div>' +
+      '<div class="n bad"><b>' + nC + '</b><small>Kritik</small></div><div class="n warn"><b>' + nW + '</b><small>Uyarı</small></div><div class="n info"><b>' + nI + '</b><small>Bilgi</small></div><div class="n ok"><b>' + esc(run || '-') + '</b><small>Çalışan makine</small></div></div>';
+    if (crit.length) html += '<h3 class="hx-tsec"><i class="d bad"></i>Şimdi müdahale <em>' + crit.length + '</em></h3><div class="hx-tgrid">' + crit.map(card).join('') + '</div>';
+    if (warn.length) html += '<h3 class="hx-tsec"><i class="d warn"></i>Bugün <em>' + warn.length + '</em></h3><div class="hx-tlist">' + warn.map(row).join('') + '</div>';
+    if (info.length) html += '<h3 class="hx-tsec"><i class="d info"></i>Bilgi <em>' + info.length + '</em></h3><div class="hx-tlist">' + info.map(row).join('') + '</div>';
+    if (!view) { view = document.createElement('div'); view.className = 'hx-tv'; list.parentNode.insertBefore(view, list); view.addEventListener('click', function (e) { var el = e.target.closest('[data-i]'); if (!el) return; var tgt = document.querySelectorAll('app-tasks-page .tasks a.task')[+el.dataset.i]; if (tgt) tgt.click(); }); }
+    view.dataset.k = key; view.innerHTML = html;
   }
   new MutationObserver(function () { themeBtn(); filterBar(); iconLater(); tasksUI(); inject(); oeeCards(); oeeSummary(); demoLogin(); heroAll(); heroSync(); }).observe(document.documentElement, { childList: true, subtree: true });
 
