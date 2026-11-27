@@ -409,7 +409,7 @@
     [].forEach.call(roots, function (root) {
       var w = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), n, todo = [];
       while ((n = w.nextNode())) {
-        var el = n.parentElement; if (!el || el.closest('.hx-src, .hx-hero, .hx-flt, .hx-oee-sum, select, option, button, input, textarea, svg, article.line-card h2, .hx-code, nav, [data-hxi], app-job-orders-page td:last-child')) continue;
+        var el = n.parentElement; if (!el || el.closest('.hx-src, .hx-hero, .hx-flt, .hx-oee-sum, select, option, button, input, textarea, svg, article.line-card h2, .hx-code, nav, [data-hxi], app-job-orders-page td:last-child, app-tasks-page a.task')) continue;
         var t = n.textContent; if (!t || t.length > 160) continue;
         var iot = null, m = t.match(CODE_RX);
         if (m) iot = !!(window.__IOT || {})[m[1]];
@@ -423,7 +423,48 @@
     [].forEach.call(document.querySelectorAll('main.content a, main.content button, main.content span'), function (a) { var t = a.textContent.trim(); if (/^Kamera sonuçları/.test(t) && t.length < 24 && a.style.display !== 'none') a.style.display = 'none'; });
   }
   function iconLater() { if (iconT) return; iconT = setTimeout(function () { iconT = 0; iconize(); }, 120); }
-  new MutationObserver(function () { themeBtn(); filterBar(); iconLater(); inject(); oeeCards(); oeeSummary(); demoLogin(); heroAll(); heroSync(); }).observe(document.documentElement, { childList: true, subtree: true });
+  /* ---------- Bekleyen İşlerim: kart düzeni ve filtre ---------- */
+  var TCAT = { 'pool-overdue': 'plan', 'queue-empty': 'plan', 'pool-waiting': 'plan', 'faulty-boxes': 'kal', 'nonconformity-to-confirm': 'kal', 'machine-stopped': 'ure', 'start-next': 'ure', 'breakdown-open': 'bak', 'periodic-late': 'bak' };
+  var CATL = { plan: ['Planlama', '<path d="M4 5h16v15H4z"/><path d="M4 10h16M9 3v4M15 3v4"/>'], kal: ['Kalite', '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>'], ure: ['Üretim', '<path d="M3 4h8v7H3zM13 4h8v7h-8zM3 13h8v7H3zM13 13h8v7h-8z"/>'], bak: ['Bakım', '<path d="M14.7 6.3a4 4 0 00-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 005.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/>'], diger: ['Görev', '<circle cx="12" cy="12" r="8"/>'] };
+  var SEVL = { critical: ['Kritik', 'bad'], warning: ['Uyarı', 'warn'], info: ['Bilgi', 'info'] };
+  var TF = { sev: 'all', cat: 'all' };
+  function tasksUI() {
+    var pg = document.querySelector('app-tasks-page'); if (!pg) return;
+    var list = pg.querySelector('.tasks'); if (!list) return;
+    var tasks = [].slice.call(list.querySelectorAll('a.task'));
+    tasks.forEach(function (a) {
+      if (a.querySelector('.hx-cat')) return;
+      var cat = TCAT[a.dataset.kind] || 'diger', sv = SEVL[a.dataset.severity] || ['Bilgi', 'info'];
+      a.dataset.cat = cat;
+      var top = document.createElement('div'); top.className = 'hx-ttop';
+      top.innerHTML = '<span class="hx-cat c-' + cat + '"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + CATL[cat][1] + '</svg>' + CATL[cat][0] + '</span><span class="hx-pill ' + sv[1] + '">' + sv[0] + '</span>';
+      a.insertBefore(top, a.firstChild);
+      if (a.dataset.machine) { var mc = document.createElement('span'); mc.className = 'hx-mc'; mc.innerHTML = srcBadge(!!(window.__IOT || {})[a.dataset.machine]).replace('hx-src', 'hx-src sm') + a.dataset.machine + (a.dataset.job ? ' · İE ' + a.dataset.job : ''); a.appendChild(mc); }
+    });
+    var bar = pg.querySelector('.hx-tflt');
+    if (!bar) {
+      bar = document.createElement('div'); bar.className = 'hx-flt hx-tflt';
+      list.parentNode.insertBefore(bar, list);
+      bar.addEventListener('click', function (e) { var t = e.target.closest('button'); if (!t) return; TF[t.dataset.g] = t.dataset.v; tasksApply(); });
+    }
+    var cnt = function (f) { return tasks.filter(f).length; };
+    var key = tasks.length + ':' + cnt(function (a) { return a.dataset.severity === 'critical'; });
+    if (bar.dataset.k !== key) {
+      bar.dataset.k = key;
+      var b = function (g, v, lab, n) { return '<button type="button" data-g="' + g + '" data-v="' + v + '">' + lab + ' <em>' + n + '</em></button>'; };
+      bar.innerHTML = '<div class="grp">' + b('sev', 'all', 'Tümü', tasks.length) + b('sev', 'critical', '<i class="d bad"></i>Kritik', cnt(function (a) { return a.dataset.severity === 'critical'; })) + b('sev', 'warning', '<i class="d warn"></i>Uyarı', cnt(function (a) { return a.dataset.severity === 'warning'; })) + b('sev', 'info', '<i class="d info"></i>Bilgi', cnt(function (a) { return a.dataset.severity === 'info'; })) + '</div>' +
+        '<div class="grp">' + b('cat', 'all', 'Tüm alanlar', tasks.length) + ['ure', 'bak', 'kal', 'plan'].map(function (k) { return b('cat', k, CATL[k][0], cnt(function (a) { return a.dataset.cat === k; })); }).join('') + '</div><span class="cnt"></span>';
+    }
+    tasksApply();
+  }
+  function tasksApply() {
+    var pg = document.querySelector('app-tasks-page'); if (!pg) return; var bar = pg.querySelector('.hx-tflt'); if (!bar) return;
+    [].forEach.call(bar.querySelectorAll('button'), function (x) { x.classList.toggle('on', TF[x.dataset.g] === x.dataset.v); });
+    var n = 0, all = 0;
+    [].forEach.call(pg.querySelectorAll('.tasks a.task'), function (a) { var ok = (TF.sev === 'all' || a.dataset.severity === TF.sev) && (TF.cat === 'all' || a.dataset.cat === TF.cat); var w = ok ? '' : 'none'; if (a.style.display !== w) a.style.display = w; all++; if (ok) n++; });
+    var c = bar.querySelector('.cnt'), t = n + ' / ' + all + ' iş'; if (c.textContent !== t) c.textContent = t;
+  }
+  new MutationObserver(function () { themeBtn(); filterBar(); iconLater(); tasksUI(); inject(); oeeCards(); oeeSummary(); demoLogin(); heroAll(); heroSync(); }).observe(document.documentElement, { childList: true, subtree: true });
 
   document.addEventListener('click', function (ev) {
     var nav = ev.target.closest && ev.target.closest('a[data-hx-nav]');
