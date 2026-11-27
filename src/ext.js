@@ -427,11 +427,15 @@
   var TCAT = { 'pool-overdue': 'plan', 'queue-empty': 'plan', 'pool-waiting': 'plan', 'faulty-boxes': 'kal', 'nonconformity-to-confirm': 'kal', 'machine-stopped': 'ure', 'start-next': 'ure', 'breakdown-open': 'bak', 'periodic-late': 'bak' };
   var CATL = { plan: ['Planlama', '<path d="M4 5h16v15H4z"/><path d="M4 10h16M9 3v4M15 3v4"/>'], kal: ['Kalite', '<path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M9 12l2 2 4-4"/>'], ure: ['Üretim', '<path d="M3 4h8v7H3zM13 4h8v7h-8zM3 13h8v7H3zM13 13h8v7h-8z"/>'], bak: ['Bakım', '<path d="M14.7 6.3a4 4 0 00-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 005.4-5.4l-2.6 2.6-2.4-.6-.6-2.4z"/>'], diger: ['Görev', '<circle cx="12" cy="12" r="8"/>'] };
   var SEVL = { critical: ['Kritik', 'bad'], warning: ['Uyarı', 'warn'], info: ['Bilgi', 'info'] };
+  var TVIEW = 'list'; try { TVIEW = localStorage.getItem('hx-tview') || 'list'; } catch (e) { }
+  var _ts = null;
+  function TSTATE() { if (_ts) return _ts; try { _ts = JSON.parse(localStorage.getItem('hx-tstate') || '{}'); } catch (e) { _ts = {}; } return _ts; }
+  function TSAVE(o) { _ts = o; try { localStorage.setItem('hx-tstate', JSON.stringify(o)); } catch (e) { } }
   function tasksUI() {
     var pg = document.querySelector('app-tasks-page'); if (!pg) return;
     var list = pg.querySelector('.tasks'); if (!list) return;
     var as = [].slice.call(list.querySelectorAll('a.task')); if (!as.length) return;
-    var key = as.map(function (a) { return a.dataset.kind + (a.querySelector('b') || {}).textContent; }).join('|');
+    var key = as.map(function (a) { return a.dataset.kind + (a.querySelector('b') || {}).textContent; }).join('|') + TVIEW + JSON.stringify(TSTATE());
     var view = pg.querySelector('.hx-tv'); if (view && view.dataset.k === key) return;
     var T = as.map(function (a, i) {
       var t = ((a.querySelector('.text b') || {}).textContent || '').trim(), sm = ((a.querySelector('.text small') || {}).textContent || '').trim();
@@ -450,23 +454,49 @@
     var run = ((pg.querySelector('.stats [data-count=running]') || {}).textContent || '').trim();
     var catTag = function (c) { return '<span class="hx-cat c-' + c + '"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + CATL[c][1] + '</svg>' + CATL[c][0] + '</span>'; };
     var mchip = function (r) { return r.mach ? '<span class="hx-mc">' + srcBadge(!!(window.__IOT || {})[r.mach]).replace('hx-src', 'hx-src sm') + esc(r.name ? r.name.split(' · ')[0] : r.mach) + ' <i>' + esc(r.mach) + '</i></span>' : '<span class="hx-mc"><i>Fabrika geneli</i></span>'; };
-    var SV = { critical: ['Kritik', 'bad'], warning: ['Uyarı', 'warn'], info: ['Bilgi', 'info'] };
-    var card = function (r) {
-      var sv = SV[r.sev] || SV.info, ttl = r.msg.charAt(0).toUpperCase() + r.msg.slice(1);
-      var mname = r.name ? r.name.split(' · ')[0] : '';
-      return '<div class="hx-tc s-' + r.sev + '" data-i="' + r.i + '"><div class="hx-tp"><span class="hx-sevb ' + sv[1] + '"><i></i>' + sv[0] + '</span>' + catTag(r.cat) + '</div>' +
-        '<div class="hx-tt">' + (r.mach ? srcBadge(!!(window.__IOT || {})[r.mach]).replace('hx-src', 'hx-src sm') : '') + '<b>' + esc(ttl) + '</b></div>' +
-        '<div class="hx-ts">' + (mname ? esc(mname) + ' · <code>' + esc(r.mach) + '</code>' : 'Fabrika geneli') + '</div>' +
-        (r.items ? '<ul>' + r.items.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' : '<p>' + esc(r.sm) + '</p>') +
-        '<div class="hx-tb"><em class="hx-tgo">' + esc(/^Kamera/.test(r.go) ? 'İncele →' : r.go) + '</em></div></div>';
+    var OWN = { bak: 'Bakım Teknisyeni 1', kal: 'Kalite Uzmanı 1', ure: 'Vardiya şefi', plan: 'Planlama Uzmanı', diger: 'Vardiya şefi' };
+    var PR = { critical: ['Acil', 'bad', 3], warning: ['Yüksek', 'warn', 2], info: ['Normal', 'info', 1] };
+    var st = TSTATE();
+    rows.forEach(function (r) { r.key = r.kind + '|' + r.mach + '|' + r.msg; r.st = st[r.key] || 'todo'; r.own = OWN[r.cat]; r.due = r.sev === 'critical' ? (r.kind === 'periodic-late' || /gecikti|geçmiş|sürüyor|önce/.test(r.msg + r.sm) ? ['Gecikti', 'bad'] : ['Bugün 12:00', 'bad']) : r.kind === 'periodic-late' ? ['Gecikti', 'bad'] : r.sev === 'warning' ? ['Bugün 18:00', 'warn'] : ['Yarın', 'idle']; });
+    var ini = function (n) { return n.split(' ').map(function (w) { return w.charAt(0); }).join('').slice(0, 2).toUpperCase(); };
+    var prio = function (r) { var p = PR[r.sev] || PR.info; return '<span class="hx-pr ' + p[1] + '" title="Öncelik: ' + p[0] + '">' + '<i></i><i></i><i></i></span>'.replace(/<i><\/i>/g, function (m, o) { return m; }) + '</span>'; };
+    var prio2 = function (r) { var p = PR[r.sev] || PR.info, h = ''; for (var k = 1; k <= 3; k++) h += '<i class="' + (k <= p[2] ? 'on' : '') + '"></i>'; return '<span class="hx-pr ' + p[1] + '" title="Öncelik: ' + p[0] + '">' + h + '</span>'; };
+    var stl = { todo: 'Yapılacak', doing: 'Devam ediyor', done: 'Tamamlandı' };
+    var lrow = function (r) {
+      var ttl = r.msg.charAt(0).toUpperCase() + r.msg.slice(1), mname = r.name ? r.name.split(' · ')[0] : '';
+      return '<div class="hx-qr' + (r.st === 'done' ? ' done' : '') + '" data-key="' + esc(r.key) + '" data-i="' + r.i + '">' +
+        '<button class="hx-ck" data-act="done" title="Tamamlandı olarak işaretle"></button>' + prio2(r) +
+        '<div class="hx-qt"><b>' + esc(ttl) + '</b><small>' + esc(r.items ? r.items.join(' · ') : r.sm) + '</small></div>' +
+        catTag(r.cat) +
+        '<span class="mc">' + (r.mach ? srcBadge(!!(window.__IOT || {})[r.mach]).replace('hx-src', 'hx-src sm') + esc(mname) + ' <code>' + esc(r.mach) + '</code>' : '<span class="muted">Fabrika geneli</span>') + '</span>' +
+        '<span class="ow" title="' + esc(r.own) + '"><i>' + ini(r.own) + '</i>' + esc(r.own) + '</span>' +
+        '<span class="du ' + r.due[1] + '">' + r.due[0] + '</span>' +
+        '<button class="hx-stb s-' + r.st + '" data-act="st">' + stl[r.st] + '</button>' +
+        '<button class="hx-open" data-act="open" title="' + esc(r.go) + '">→</button></div>';
     };
-    var html = '<div class="hx-tsum"><div class="hd"><span class="hx-tbadge"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>Görevler</span><div class="tx"><h3>Vardiya görev özeti</h3><div class="s2">' +
-      (function () { var u = crit.filter(function (r) { return r.kind === 'machine-stopped'; })[0] || crit[0]; return u ? 'En acil: <b>' + esc(u.name ? u.name.split(' · ')[0] + ' · ' : '') + esc(u.msg) + '</b>' + (u.sm ? ' — ' + esc(u.sm) : '') : 'Acil iş yok.'; })() +
-      '</div></div><span class="hx-ai-live"><i></i>Canlı</span></div>' +
-      '<div class="st"><div><b class="bad">' + nC + '</b><small>kritik iş</small></div><div><b class="warn">' + nW + '</b><small>uyarı</small></div><div><b class="info">' + nI + '</b><small>bilgi</small></div><div><b class="ok">' + esc(run || '-') + '</b><small>çalışan makine</small></div><div><b>' + rows.length + '</b><small>kart · tekrar edenler toplandı</small></div></div></div>';
-    var sec = function (lst, cls, lab) { return lst.length ? '<h3 class="hx-tsec"><span class="hx-sevb ' + cls + '"><i></i>' + lab + '</span><em>' + lst.length + '</em></h3><div class="hx-tgrid">' + lst.map(card).join('') + '</div>' : ''; };
-    html += sec(crit, 'bad', 'Şimdi müdahale') + sec(warn, 'warn', 'Bugün') + sec(info, 'info', 'Bilgi');
-    if (!view) { view = document.createElement('div'); view.className = 'hx-tv'; list.parentNode.insertBefore(view, list); view.addEventListener('click', function (e) { var el = e.target.closest('[data-i]'); if (!el) return; var tgt = document.querySelectorAll('app-tasks-page .tasks a.task')[+el.dataset.i]; if (tgt) tgt.click(); }); }
+    var kcard = function (r) {
+      var ttl = r.msg.charAt(0).toUpperCase() + r.msg.slice(1), mname = r.name ? r.name.split(' · ')[0] : '';
+      return '<div class="hx-kc' + (r.st === 'done' ? ' done' : '') + '" data-key="' + esc(r.key) + '" data-i="' + r.i + '"><div class="r1">' + prio2(r) + catTag(r.cat) + '</div><b>' + esc(ttl) + '</b>' +
+        '<div class="r2">' + (r.mach ? srcBadge(!!(window.__IOT || {})[r.mach]).replace('hx-src', 'hx-src sm') + '<code>' + esc(r.mach) + '</code>' : '<span class="muted">Fabrika geneli</span>') + '<span class="du ' + r.due[1] + '">' + r.due[0] + '</span><span class="ow" title="' + esc(r.own) + '"><i>' + ini(r.own) + '</i></span></div></div>';
+    };
+    var open = rows.filter(function (r) { return r.st !== 'done'; }), done = rows.filter(function (r) { return r.st === 'done'; });
+    var nAc = open.filter(function (r) { return r.sev === 'critical'; }).length, nLate = open.filter(function (r) { return r.due[0] === 'Gecikti'; }).length;
+    var html = '<div class="hx-tbar"><div class="hx-seg">' + ['list', 'board'].map(function (v) { return '<button data-act="view" data-v="' + v + '" class="' + (TVIEW === v ? 'on' : '') + '">' + (v === 'list' ? '☰ Liste' : '▦ Pano') + '</button>'; }).join('') + '</div>' +
+      '<div class="hx-tstats"><span><b>' + open.length + '</b> açık</span><span class="bad"><b>' + nAc + '</b> acil</span><span class="bad"><b>' + nLate + '</b> geciken</span><span class="ok"><b>' + done.length + '</b> tamamlandı</span>' + (run ? '<span><b>' + esc(run) + '</b> makine çalışıyor</span>' : '') + '</div></div>';
+    if (TVIEW === 'board') {
+      html += '<div class="hx-board">' + ['todo', 'doing', 'done'].map(function (k) { var l = rows.filter(function (r) { return r.st === k; }).sort(function (x, y) { return (PR[y.sev] || PR.info)[2] - (PR[x.sev] || PR.info)[2]; }); return '<div class="col"><h4><span class="dot s-' + k + '"></span>' + stl[k] + ' <em>' + l.length + '</em></h4>' + l.map(kcard).join('') + '</div>'; }).join('') + '</div>';
+    } else {
+      var hdr = '<div class="hx-qh"><span></span><span>Öncelik</span><span>Görev</span><span>Alan</span><span>Makine</span><span>Sorumlu</span><span>Termin</span><span>Durum</span><span></span></div>';
+      var grp = function (lab, cls, l) { return l.length ? '<div class="hx-qg"><span class="hx-pr ' + cls + '"><i class="on"></i><i class="on"></i><i class="on"></i></span>' + lab + ' <em>' + l.length + '</em></div>' + l.map(lrow).join('') : ''; };
+      html += '<div class="hx-ql">' + hdr + grp('Acil', 'bad', open.filter(function (r) { return r.sev === 'critical'; })) + grp('Yüksek', 'warn', open.filter(function (r) { return r.sev === 'warning'; })) + grp('Normal', 'info', open.filter(function (r) { return r.sev !== 'critical' && r.sev !== 'warning'; })) + grp('Tamamlandı', 'ok', done) + '</div>';
+    }
+    if (!view) { view = document.createElement('div'); view.className = 'hx-tv'; list.parentNode.insertBefore(view, list); view.addEventListener('click', function (e) {
+        var btn = e.target.closest('[data-act]'), el = e.target.closest('[data-key]');
+        if (btn && btn.dataset.act === 'view') { TVIEW = btn.dataset.v; try { localStorage.setItem('hx-tview', TVIEW); } catch (x) { } view.dataset.k = ''; tasksUI(); return; }
+        if (!el) return; var k = el.dataset.key, S = TSTATE();
+        if (btn && btn.dataset.act === 'done') { S[k] = S[k] === 'done' ? 'todo' : 'done'; TSAVE(S); view.dataset.k = ''; tasksUI(); toast(S[k] === 'done' ? 'Görev tamamlandı.' : 'Görev yeniden açıldı.'); return; }
+        if (btn && btn.dataset.act === 'st') { var nx = { todo: 'doing', doing: 'done', done: 'todo' }; S[k] = nx[S[k] || 'todo']; TSAVE(S); view.dataset.k = ''; tasksUI(); return; }
+        var tgt = document.querySelectorAll('app-tasks-page .tasks a.task')[+el.dataset.i]; if (tgt) tgt.click(); }); }
     view.dataset.k = key; view.innerHTML = html;
   }
   new MutationObserver(function () { themeBtn(); filterBar(); iconLater(); tasksUI(); inject(); oeeCards(); oeeSummary(); demoLogin(); heroAll(); heroSync(); }).observe(document.documentElement, { childList: true, subtree: true });
