@@ -450,13 +450,22 @@
     var run = ((pg.querySelector('.stats [data-count=running]') || {}).textContent || '').trim();
     var catTag = function (c) { return '<span class="hx-cat c-' + c + '"><svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + CATL[c][1] + '</svg>' + CATL[c][0] + '</span>'; };
     var mchip = function (r) { return r.mach ? '<span class="hx-mc">' + srcBadge(!!(window.__IOT || {})[r.mach]).replace('hx-src', 'hx-src sm') + esc(r.name ? r.name.split(' · ')[0] : r.mach) + ' <i>' + esc(r.mach) + '</i></span>' : '<span class="hx-mc"><i>Fabrika geneli</i></span>'; };
-    var card = function (r) { return '<div class="hx-tc" data-i="' + r.i + '"><div class="top">' + catTag(r.cat) + '<span class="hx-pill bad">Kritik</span></div><b>' + esc(r.msg.charAt(0).toUpperCase() + r.msg.slice(1)) + '</b><small>' + esc(r.sm) + '</small><div class="bot">' + mchip(r) + '<span class="go">' + esc(r.go) + '</span></div></div>'; };
-    var row = function (r) { return '<div class="hx-tr s-' + r.sev + '" data-i="' + r.i + '"><i class="d"></i>' + catTag(r.cat) + '<div class="tx"><b>' + esc(r.msg.charAt(0).toUpperCase() + r.msg.slice(1)) + '</b><small>' + esc(r.sm) + '</small></div>' + mchip(r) + '<span class="go">' + esc(r.go) + '</span></div>'; };
-    var html = '<div class="hx-tsum"><div class="l"><small>Vardiya görev özeti</small><b>' + (function () { var u = crit.filter(function (r) { return r.kind === 'machine-stopped'; })[0] || crit[0]; return u ? 'En acil: ' + esc(u.name ? u.name.split(' · ')[0] + ' · ' : '') + esc(u.msg) + (u.sm ? ' <span class="sub">' + esc(u.sm) + '</span>' : '') : 'Acil iş yok'; })() + '</b></div>' +
-      '<div class="n bad"><b>' + nC + '</b><small>Kritik</small></div><div class="n warn"><b>' + nW + '</b><small>Uyarı</small></div><div class="n info"><b>' + nI + '</b><small>Bilgi</small></div><div class="n ok"><b>' + esc(run || '-') + '</b><small>Çalışan makine</small></div></div>';
-    if (crit.length) html += '<h3 class="hx-tsec"><i class="d bad"></i>Şimdi müdahale <em>' + crit.length + '</em></h3><div class="hx-tgrid">' + crit.map(card).join('') + '</div>';
-    if (warn.length) html += '<h3 class="hx-tsec"><i class="d warn"></i>Bugün <em>' + warn.length + '</em></h3><div class="hx-tlist">' + warn.map(row).join('') + '</div>';
-    if (info.length) html += '<h3 class="hx-tsec"><i class="d info"></i>Bilgi <em>' + info.length + '</em></h3><div class="hx-tlist">' + info.map(row).join('') + '</div>';
+    var SV = { critical: ['Kritik', 'bad'], warning: ['Uyarı', 'warn'], info: ['Bilgi', 'info'] };
+    var card = function (r) {
+      var sv = SV[r.sev] || SV.info, ttl = r.msg.charAt(0).toUpperCase() + r.msg.slice(1);
+      var mname = r.name ? r.name.split(' · ')[0] : '';
+      return '<div class="hx-tc s-' + r.sev + '" data-i="' + r.i + '"><div class="hx-tp"><span class="hx-sevb ' + sv[1] + '"><i></i>' + sv[0] + '</span>' + catTag(r.cat) + '</div>' +
+        '<div class="hx-tt">' + (r.mach ? srcBadge(!!(window.__IOT || {})[r.mach]).replace('hx-src', 'hx-src sm') : '') + '<b>' + esc(ttl) + '</b></div>' +
+        '<div class="hx-ts">' + (mname ? esc(mname) + ' · <code>' + esc(r.mach) + '</code>' : 'Fabrika geneli') + '</div>' +
+        (r.items ? '<ul>' + r.items.map(function (x) { return '<li>' + esc(x) + '</li>'; }).join('') + '</ul>' : '<p>' + esc(r.sm) + '</p>') +
+        '<div class="hx-tb"><em class="hx-tgo">' + esc(/^Kamera/.test(r.go) ? 'İncele →' : r.go) + '</em></div></div>';
+    };
+    var html = '<div class="hx-tsum"><div class="hd"><span class="hx-tbadge"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11l3 3 8-8"/><path d="M20 12v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h9"/></svg>Görevler</span><div class="tx"><h3>Vardiya görev özeti</h3><div class="s2">' +
+      (function () { var u = crit.filter(function (r) { return r.kind === 'machine-stopped'; })[0] || crit[0]; return u ? 'En acil: <b>' + esc(u.name ? u.name.split(' · ')[0] + ' · ' : '') + esc(u.msg) + '</b>' + (u.sm ? ' — ' + esc(u.sm) : '') : 'Acil iş yok.'; })() +
+      '</div></div><span class="hx-ai-live"><i></i>Canlı</span></div>' +
+      '<div class="st"><div><b class="bad">' + nC + '</b><small>kritik iş</small></div><div><b class="warn">' + nW + '</b><small>uyarı</small></div><div><b class="info">' + nI + '</b><small>bilgi</small></div><div><b class="ok">' + esc(run || '-') + '</b><small>çalışan makine</small></div><div><b>' + rows.length + '</b><small>kart · tekrar edenler toplandı</small></div></div></div>';
+    var sec = function (lst, cls, lab) { return lst.length ? '<h3 class="hx-tsec"><span class="hx-sevb ' + cls + '"><i></i>' + lab + '</span><em>' + lst.length + '</em></h3><div class="hx-tgrid">' + lst.map(card).join('') + '</div>' : ''; };
+    html += sec(crit, 'bad', 'Şimdi müdahale') + sec(warn, 'warn', 'Bugün') + sec(info, 'info', 'Bilgi');
     if (!view) { view = document.createElement('div'); view.className = 'hx-tv'; list.parentNode.insertBefore(view, list); view.addEventListener('click', function (e) { var el = e.target.closest('[data-i]'); if (!el) return; var tgt = document.querySelectorAll('app-tasks-page .tasks a.task')[+el.dataset.i]; if (tgt) tgt.click(); }); }
     view.dataset.k = key; view.innerHTML = html;
   }
